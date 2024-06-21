@@ -48,14 +48,15 @@ public class CRMControllerTest {
 
         // Mock response
         CardListResponse response = new CardListResponse();
-        response.setStatus(new CardListResponse.Status());
-        response.getStatus().setStatusCode("0000");
-        response.getStatus().setMessageID(request.getMessageId());
+        CardListResponse.Status status = new CardListResponse.Status();
+        status.setStatusCode("0000");
+        status.setMessageID(request.getMessageId());
+        response.setStatus(status);
 
         when(ccService.processRequest(any(CardListRequest.class), any(String.class))).thenReturn(response);
 
         // Perform and verify the request
-        mockMvc.perform(post("/api/{service}", "cc")
+        mockMvc.perform(post("/api/cc")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("country", country)
                 .content(asJsonString(request)))
