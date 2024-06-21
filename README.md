@@ -1,77 +1,44 @@
-package com.crm.controller;
+import org.springframework.stereotype.Service;
 
-import com.crm.dto.cc.request.CardListRequest;
-import com.crm.dto.cc.response.CardListResponse;
-import com.crm.service.CCService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+@Service
+public class CASAServiceImpl implements CASAService {
 
-import javax.servlet.http.HttpServletRequest;
+    @Override
+    public CASAListResponsePayload getCASAList(CASAListRequestPayload request, String country) {
+        // Mock response data
+        CASAListResponsePayload response = new CASAListResponsePayload();
+        response.setStatus(new CASAListResponsePayload.Status());
+        response.getStatus().setStatusCode("eeee");
+        response.getStatus().setStatusDesc("");
+        response.getStatus().setMessageID("2bd4ea21176a4ccf8990929bd11927c3");
+        response.getStatus().setInteractionId("00004101051717343657");
+        response.getStatus().setTimestamp("2024.06.02.23.54.24");
+        response.getStatus().setInputID("");
+        response.getStatus().setCurrencyCode("GBP");
+        response.getStatus().setAccountStatus("U");
+        response.getStatus().setProductCode("206523");
+        response.getStatus().setLedgerBalance("0.00");
+        response.getStatus().setAvailBalancewithLimit("0.00");
+        response.getStatus().setInputIDType("10");
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+        CASAListResponsePayload.AccountList accountList = new CASAListResponsePayload.AccountList();
+        CASAListResponsePayload.Account account = new CASAListResponsePayload.Account();
+        account.setAcctNumber("4009815670");
+        account.setCurrencyCode("SGD");
+        account.setProductCode("206523");
+        account.setAccountStatus("0");
+        account.setAvailBalancewithoutLimit("6766.53");
+        account.setLedgerBalance("6766.53");
+        account.setProductCategory("S");
+        account.setOperatingInstruction("001");
+        account.setSegmentCode("03");
+        account.setAccountCategory("N");
+        account.setAccOpenDate("2017-01-13");
+        account.setCustomerSegmentCode("013");
 
-public class CRMControllerTest {
+        accountList.setAccList(Collections.singletonList(account));
+        response.setAccountList(accountList);
 
-    private MockMvc mockMvc;
-
-    @InjectMocks
-    private CRMController crmController;
-
-    @Mock
-    private CCService ccService;
-
-    @Mock
-    private HttpServletRequest httpServletRequest;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(crmController).build();
-    }
-
-    @Test
-    public void testGetCardList() throws Exception {
-        // Mock request
-        CardListRequest request = new CardListRequest();
-        request.setMessageId("12345");
-        String country = "SG";
-
-        // Mock response
-        CardListResponse response = new CardListResponse();
-        CardListResponse.Status status = new CardListResponse.Status();
-        status.setStatusCode("0000");
-        status.setMessageID(request.getMessageId());
-        response.setStatus(status);
-
-        when(ccService.processRequest(any(CardListRequest.class), any(String.class))).thenReturn(response);
-
-        // Perform and verify the request
-        mockMvc.perform(post("/api/cc")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("country", country)
-                .content(asJsonString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status.statusCode").value("0000"))
-                .andExpect(jsonPath("$.status.messageID").value("12345"));
-    }
-
-    // Helper method to convert object to JSON string
-    private static String asJsonString(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return response;
     }
 }
