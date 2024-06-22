@@ -1,67 +1,50 @@
-package com.example.demo.entity;
-
-import javax.persistence.*;
-import java.util.Date;
-
 @Entity
-@Table(name = "Application_Status")
-public class ApplicationStatus {
+@Table(name = "SalesPitch")
+public class SalesPitch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "application_reference_number")
-    private Long applicationReferenceNumber;
+    @Column(name = "id")
+    private Long id;
 
-    @Column(name = "date")
-    private Date date;
+    @Column(name = "IVRCPWOV_ED")
+    private Date ivrcpwovEd;
 
-    @Column(name = "status_description", length = 50)
-    private String statusDescription;
+    @Column(name = "IVRCPWV_SD")
+    private Date ivrcpwvSd;
 
-    @Column(name = "application_status", length = 20)
-    private String applicationStatus;
+    @Column(name = "IVRCPWV_ED")
+    private Date ivrcpwvEd;
 
-    @Column(name = "product_category", length = 5)
-    private String productCategory;
+    @Column(name = "HP1_PRODUCTNAME", length = 25)
+    private String hp1ProductName;
 
-    // Getters and Setters
-    public Long getApplicationReferenceNumber() {
-        return applicationReferenceNumber;
-    }
+    @Column(name = "HP2_PRODUCTNAME", length = 25)
+    private String hp2ProductName;
 
-    public void setApplicationReferenceNumber(Long applicationReferenceNumber) {
-        this.applicationReferenceNumber = applicationReferenceNumber;
-    }
+    @Column(name = "HP3_PRODUCTNAME", length = 25)
+    private String hp3ProductName;
 
-    public Date getDate() {
-        return date;
-    }
+    @Column(name = "PP1_PRODUCTNAME", length = 25)
+    private String pp1ProductName;
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
+    @Column(name = "PP2_PRODUCTNAME", length = 25)
+    private String pp2ProductName;
 
-    public String getStatusDescription() {
-        return statusDescription;
-    }
+    @Column(name = "PP3_PRODUCTNAME", length = 25)
+    private String pp3ProductName;
 
-    public void setStatusDescription(String statusDescription) {
-        this.statusDescription = statusDescription;
-    }
+    @Column(name = "PP4_PRODUCTNAME", length = 25)
+    private String pp4ProductName;
 
-    public String getApplicationStatus() {
-        return applicationStatus;
-    }
+    @Column(name = "IVRCPWOV_PRODUCTNAME", length = 25)
+    private String ivrcpwovProductName;
 
-    public void setApplicationStatus(String applicationStatus) {
-        this.applicationStatus = applicationStatus;
-    }
+    @Column(name = "IVRCPWV_PRODUCTNAME", length = 25)
+    private String ivrcpwvProductName;
 
-    public String getProductCategory() {
-        return productCategory;
-    }
+    @Column(name = "PRODUCT_PITCH", length = 3)
+    private String productPitch;
 
-    public void setProductCategory(String productCategory) {
-        this.productCategory = productCategory;
-    }
-}
+    @Column(name = "PITCH_DATE")
+    private Date pitchDate;
