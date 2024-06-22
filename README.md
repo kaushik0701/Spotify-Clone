@@ -1,44 +1,67 @@
-import org.springframework.stereotype.Service;
+package com.example.demo.entity;
 
-@Service
-public class CASAServiceImpl implements CASAService {
+import javax.persistence.*;
+import java.util.Date;
 
-    @Override
-    public CASAListResponsePayload getCASAList(CASAListRequestPayload request, String country) {
-        // Mock response data
-        CASAListResponsePayload response = new CASAListResponsePayload();
-        response.setStatus(new CASAListResponsePayload.Status());
-        response.getStatus().setStatusCode("eeee");
-        response.getStatus().setStatusDesc("");
-        response.getStatus().setMessageID("2bd4ea21176a4ccf8990929bd11927c3");
-        response.getStatus().setInteractionId("00004101051717343657");
-        response.getStatus().setTimestamp("2024.06.02.23.54.24");
-        response.getStatus().setInputID("");
-        response.getStatus().setCurrencyCode("GBP");
-        response.getStatus().setAccountStatus("U");
-        response.getStatus().setProductCode("206523");
-        response.getStatus().setLedgerBalance("0.00");
-        response.getStatus().setAvailBalancewithLimit("0.00");
-        response.getStatus().setInputIDType("10");
+@Entity
+@Table(name = "Application_Status")
+public class ApplicationStatus {
 
-        CASAListResponsePayload.AccountList accountList = new CASAListResponsePayload.AccountList();
-        CASAListResponsePayload.Account account = new CASAListResponsePayload.Account();
-        account.setAcctNumber("4009815670");
-        account.setCurrencyCode("SGD");
-        account.setProductCode("206523");
-        account.setAccountStatus("0");
-        account.setAvailBalancewithoutLimit("6766.53");
-        account.setLedgerBalance("6766.53");
-        account.setProductCategory("S");
-        account.setOperatingInstruction("001");
-        account.setSegmentCode("03");
-        account.setAccountCategory("N");
-        account.setAccOpenDate("2017-01-13");
-        account.setCustomerSegmentCode("013");
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "application_reference_number")
+    private Long applicationReferenceNumber;
 
-        accountList.setAccList(Collections.singletonList(account));
-        response.setAccountList(accountList);
+    @Column(name = "date")
+    private Date date;
 
-        return response;
+    @Column(name = "status_description", length = 50)
+    private String statusDescription;
+
+    @Column(name = "application_status", length = 20)
+    private String applicationStatus;
+
+    @Column(name = "product_category", length = 5)
+    private String productCategory;
+
+    // Getters and Setters
+    public Long getApplicationReferenceNumber() {
+        return applicationReferenceNumber;
+    }
+
+    public void setApplicationReferenceNumber(Long applicationReferenceNumber) {
+        this.applicationReferenceNumber = applicationReferenceNumber;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public String getStatusDescription() {
+        return statusDescription;
+    }
+
+    public void setStatusDescription(String statusDescription) {
+        this.statusDescription = statusDescription;
+    }
+
+    public String getApplicationStatus() {
+        return applicationStatus;
+    }
+
+    public void setApplicationStatus(String applicationStatus) {
+        this.applicationStatus = applicationStatus;
+    }
+
+    public String getProductCategory() {
+        return productCategory;
+    }
+
+    public void setProductCategory(String productCategory) {
+        this.productCategory = productCategory;
     }
 }
