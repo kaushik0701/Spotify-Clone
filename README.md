@@ -1,50 +1,50 @@
-@Entity
-@Table(name = "SalesPitch")
-public class SalesPitch {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    @Column(name = "IVRCPWOV_ED")
-    private Date ivrcpwovEd;
-
-    @Column(name = "IVRCPWV_SD")
-    private Date ivrcpwvSd;
-
-    @Column(name = "IVRCPWV_ED")
-    private Date ivrcpwvEd;
-
-    @Column(name = "HP1_PRODUCTNAME", length = 25)
-    private String hp1ProductName;
-
-    @Column(name = "HP2_PRODUCTNAME", length = 25)
-    private String hp2ProductName;
-
-    @Column(name = "HP3_PRODUCTNAME", length = 25)
-    private String hp3ProductName;
-
-    @Column(name = "PP1_PRODUCTNAME", length = 25)
-    private String pp1ProductName;
-
-    @Column(name = "PP2_PRODUCTNAME", length = 25)
-    private String pp2ProductName;
-
-    @Column(name = "PP3_PRODUCTNAME", length = 25)
-    private String pp3ProductName;
-
-    @Column(name = "PP4_PRODUCTNAME", length = 25)
-    private String pp4ProductName;
-
-    @Column(name = "IVRCPWOV_PRODUCTNAME", length = 25)
-    private String ivrcpwovProductName;
-
-    @Column(name = "IVRCPWV_PRODUCTNAME", length = 25)
-    private String ivrcpwvProductName;
-
-    @Column(name = "PRODUCT_PITCH", length = 3)
-    private String productPitch;
-
-    @Column(name = "PITCH_DATE")
-    private Date pitchDate;
+CREATE TABLE SalesPitch (
+    RELID VARCHAR2(20 BYTE),
+    SEGMENT VARCHAR2(3 BYTE),
+    DND_FLAG VARCHAR2(1 BYTE),
+    FILE_RELEASE_DATE DATE,
+    HP1_FLAG VARCHAR2(1 BYTE),
+    HP2_FLAG VARCHAR2(1 BYTE),
+    HP3_FLAG VARCHAR2(1 BYTE),
+    HP1_SD_DATE DATE,
+    HP1_ED_DATE DATE,
+    HP2_SD_DATE DATE,
+    HP2_ED_DATE DATE,
+    HP3_SD_DATE DATE,
+    HP3_ED_DATE DATE,
+    HP_MSG VARCHAR2(40 BYTE),
+    PP1_FLAG VARCHAR2(1 BYTE),
+    PP2_FLAG VARCHAR2(1 BYTE),
+    PP3_FLAG VARCHAR2(1 BYTE),
+    PP4_FLAG VARCHAR2(1 BYTE),
+    PP1_SD_DATE DATE,
+    PP1_ED_DATE DATE,
+    PP2_SD_DATE DATE,
+    PP2_ED_DATE DATE,
+    PP3_SD_DATE DATE,
+    PP3_ED_DATE DATE,
+    PP4_SD_DATE DATE,
+    PP4_ED_DATE DATE,
+    PP1_MSG VARCHAR2(40 BYTE),
+    PP2_MSG VARCHAR2(40 BYTE),
+    PP3_MSG VARCHAR2(40 BYTE),
+    PP4_MSG VARCHAR2(40 BYTE),
+    IVRCPWOV_FLAG VARCHAR2(1 BYTE),
+    IVRCPWV_FLAG VARCHAR2(1 BYTE),
+    IVRCPVALUE NUMBER,
+    IVRCPWOV_SD_DATE DATE,
+    IVRCPWOV_ED_DATE DATE,
+    IVRCPWV_SD_DATE DATE,
+    IVRCPWV_ED_DATE DATE,
+    HP1_PRODUCTNAME VARCHAR2(25 BYTE),
+    HP2_PRODUCTNAME VARCHAR2(25 BYTE),
+    HP3_PRODUCTNAME VARCHAR2(25 BYTE),
+    PP1_PRODUCTNAME VARCHAR2(25 BYTE),
+    PP2_PRODUCTNAME VARCHAR2(25 BYTE),
+    PP3_PRODUCTNAME VARCHAR2(25 BYTE),
+    PP4_PRODUCTNAME VARCHAR2(25 BYTE),
+    IVRCPWOV_PRODUCTNAME VARCHAR2(25 BYTE),
+    IVRCPWV_PRODUCTNAME VARCHAR2(25 BYTE),
+    PRODUCT_PITCH VARCHAR2(3 BYTE),
+    PITCH_DATE DATE
+);
