@@ -1,70 +1,131 @@
-Sure, let's go through the provided code line by line:
+Sure, I'll explain each line of the provided Java method `1msDataProcess`. This method processes data, logs the JSON request and payload, makes a REST call, and handles the response.
 
 ```java
-@Profiled
-// 915
-// This is a custom annotation. "Profiled" likely indicates that this method is being monitored or profiled for performance metrics.
-
-@RequestMapping(value = GET_LEADFILE_DETAILS, method = { RequestMethod.POST, RequestMethod.GET }, produces = MediaType.APPLICATION_JSON)
-// 916
-// The @RequestMapping annotation maps HTTP requests to handler methods. 
-// Here, it maps both POST and GET requests to the URL defined by GET_LEADFILE_DETAILS.
-// The produces attribute specifies that the method returns JSON data.
-
-public @ResponseBody Map<String, Object> getLeadFilelogsDetails (@ModelAttribute("login") LoginBean login,
-// 939
-// The method getLeadFilelogsDetails handles HTTP requests and returns a response as a JSON object.
-// The @ResponseBody annotation ensures the returned Map is serialized into JSON.
-// The @ModelAttribute annotation binds the "login" model attribute to the LoginBean parameter.
-
-@RequestParam(value = "objectType", required = false) String objectType, 
-@RequestParam(value = "pageNo", required = false, defaultValue = "1") int pageNo, 
-@RequestParam(value = "fileName", required = false, defaultValue = "") String fileNameFilter, 
-@RequestParam(value = "createdDate", required = false, defaultValue = "") String createdDateFilter, 
-@RequestParam(value = "status", required = false, defaultValue = "") String statusFilter, 
-@RequestParam(value = "userId", required = false, defaultValue = "") String userIdFilter)
-// 920-927
-// These @RequestParam annotations bind request parameters to method parameters.
-// Each parameter is optional (required = false) and has a default value if not provided.
-
+@SuppressWarnings({ "rawtypes", "unchecked" })
+public Map<String, Object> 1msDataProcess (Map<String, Object> request, Map<String, Object> payLoad, String paramKey)
 throws Sales2ServiceRuntimeException, IOException, Exception {
-// 928
-// The method declares it can throw several exceptions, including Sales2ServiceRuntimeException, IOException, and a generic Exception.
+```
+- `@SuppressWarnings({ "rawtypes", "unchecked" })`: Suppresses compiler warnings for unchecked operations and raw types.
+- `public Map<String, Object> 1msDataProcess(...)`: Declares a public method returning a `Map<String, Object>`.
+- `Map<String, Object> request`: Input request map.
+- `Map<String, Object> payLoad`: Input payload map.
+- `String paramKey`: A parameter key for some configuration.
+- `throws Sales2ServiceRuntimeException, IOException, Exception`: Declares that the method can throw these exceptions.
 
-Map<String, Object> request = new HashMap<String, Object>();
-// 929
-// Creates a new HashMap to store request data.
+```java
+try {
+    LogJson(request, payLoad);
+```
+- `try {`: Begins the try block for exception handling.
+- `LogJson(request, payLoad);`: Logs the request and payload.
 
-request.put("headerData", getHeaderData(login.getUserBean()));
-// 930
-// Puts header data into the request map, using the getHeaderData method with the userBean from the login object.
+```java
+    Map<String, Object> response = new HashMap<String, Object>();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+```
+- `Map<String, Object> response = new HashMap<String, Object>();`: Initializes an empty response map.
+- `HttpHeaders headers = new HttpHeaders();`: Creates new HTTP headers.
+- `headers.setContentType(MediaType.APPLICATION_JSON);`: Sets the content type to JSON.
+- `headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));`: Sets the accept header to JSON.
 
-request.put("objectType", objectType); 
-request.put("pageNo", pageNo);
-request.put("fileName", fileNameFilter); 
-request.put("status", statusFilter);
-request.put("userId", userIdFilter);
-request.put("createdDate", createdDateFilter);
-// 931-936
-// Adds the parameters received from the request to the request map.
+```java
+    if (request.containsKey("headerData"))
+        headers.add("s2sHeader", getHeaderString(request.get("headerData")));
+```
+- `if (request.containsKey("headerData"))`: Checks if the request map contains "headerData".
+- `headers.add("s2sHeader", getHeaderString(request.get("headerData")));`: Adds a custom header to the HTTP headers.
 
-Logger.info("get audit log File details {}" + request);
-// 937
-// Logs the request details for auditing or debugging purposes.
+```java
+    request.remove("headerData");
+```
+- `request.remove("headerData");`: Removes "headerData" from the request map.
 
-Map<String, Object> response = new HashMap<String, Object>();
-// 938
-// Creates a new HashMap to store the response data.
+```java
+    HttpEntity<Map> requestEntity = null;
+    ResponseEntity<Map> responseEntity = null;
+    Map<String, String> paramData = getLMSEndPointeUrl(paramKey);
+```
+- `HttpEntity<Map> requestEntity = null;`: Declares a `HttpEntity` to hold the request.
+- `ResponseEntity<Map> responseEntity = null;`: Declares a `ResponseEntity` to hold the response.
+- `Map<String, String> paramData = getLMSEndPointeUrl(paramKey);`: Gets endpoint URL and HTTP method configuration.
 
-response = s25OpportunityService.lmsDataProcess(request, null, "GETDBFILEDETAILS");
-// 939
-// Calls the lmsDataProcess method of s25OpportunityService with the request map and other parameters.
-// This method likely processes the request and fetches the necessary data.
+```java
+    if (paramData.size() > 0) {
+        String serviceUrl = paramData.get("serviceUrl");
+        String httpMethod = paramData.get("httpMethod");
+        serviceUrl = strSubstitutor(serviceUrl, request);
+        Logger.info("Service URL: {}", serviceUrl);
+```
+- `if (paramData.size() > 0) {`: Checks if `paramData` is not empty.
+- `String serviceUrl = paramData.get("serviceUrl");`: Gets the service URL from `paramData`.
+- `String httpMethod = paramData.get("httpMethod");`: Gets the HTTP method from `paramData`.
+- `serviceUrl = strSubstitutor(serviceUrl, request);`: Replaces placeholders in `serviceUrl` with values from `request`.
+- `Logger.info("Service URL: {}", serviceUrl);`: Logs the service URL.
 
-return response;
-// 940
-// Returns the response map, which will be serialized to JSON and sent back to the client.
+```java
+        requestEntity = new HttpEntity<Map>(payLoad, headers);
+        if ("GET".equalsIgnoreCase(httpMethod))
+            responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.GET, requestEntity, Map.class);
+        else
+            responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.POST, requestEntity, Map.class);
+```
+- `requestEntity = new HttpEntity<Map>(payLoad, headers);`: Creates an `HttpEntity` with the payload and headers.
+- `if ("GET".equalsIgnoreCase(httpMethod))`: Checks if the HTTP method is GET.
+- `responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.GET, requestEntity, Map.class);`: Sends a GET request.
+- `else`: If the method is not GET, it assumes POST.
+- `responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.POST, requestEntity, Map.class);`: Sends a POST request.
+
+```java
+        int responseStatus = responseEntity.getStatusCodeValue();
+        Logger.info("Response Status: {}", responseStatus);
+```
+- `int responseStatus = responseEntity.getStatusCodeValue();`: Gets the response status code.
+- `Logger.info("Response Status: {}", responseStatus);`: Logs the response status code.
+
+```java
+        if (responseStatus == 200) {
+            response = responseEntity.getBody();
+            Logger.info("Response: {}", response);
+        } else {
+            Logger.error("Invalid Response Status: {}", responseStatus);
+            throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service, not a valid response %s", responseStatus));
+        }
+    } else {
+        throw new Sales2ServiceRuntimeException(String.format("Error received while retrieving the service URL"));
+    }
+    return response;
+```
+- `if (responseStatus == 200) {`: Checks if the response status is 200 (OK).
+- `response = responseEntity.getBody();`: Gets the response body.
+- `Logger.info("Response: {}", response);`: Logs the response.
+- `} else {`: If the status is not 200.
+- `Logger.error("Invalid Response Status: {}", responseStatus);`: Logs an error for invalid response status.
+- `throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service, not a valid response %s", responseStatus));`: Throws a runtime exception for invalid response status.
+- `} else {`: If `paramData` is empty.
+- `throw new Sales2ServiceRuntimeException(String.format("Error received while retrieving the service URL"));`: Throws a runtime exception for missing service URL.
+- `return response;`: Returns the response map.
+
+```java
+} catch (Sales2ServiceRuntimeException e) {
+    Logger.error("Error for 1msDataProcess method: {}", e.getMessage(), e);
+    throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service"));
+} catch(IOException e) {
+    Logger.error(e.getMessage());
+    throw new Sales2ServiceRuntimeException(e.getMessage());
 }
 ```
+- `} catch (Sales2ServiceRuntimeException e) {`: Catches custom runtime exceptions.
+- `Logger.error("Error for 1msDataProcess method: {}", e.getMessage(), e);`: Logs the exception message.
+- `throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service"));`: Re-throws the custom runtime exception.
+- `} catch(IOException e) {`: Catches IO exceptions.
+- `Logger.error(e.getMessage());`: Logs the IO exception message.
+- `throw new Sales2ServiceRuntimeException(e.getMessage());`: Throws a custom runtime exception with the IO exception message.
 
-This method is essentially a controller endpoint in a Spring Boot application that handles HTTP requests to fetch lead file log details. It processes the request parameters, adds them to a request map, logs the request, calls a service method to process the request, and finally returns the response map.
+```java
+}
+```
+- `}`: Closes the method.
+
+This method essentially logs inputs, configures headers, prepares and sends a REST request, processes the response, and handles exceptions appropriately.
