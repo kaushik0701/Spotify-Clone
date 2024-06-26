@@ -1,131 +1,80 @@
-Sure, I'll explain each line of the provided Java method `1msDataProcess`. This method processes data, logs the JSON request and payload, makes a REST call, and handles the response.
+Sure, I'll explain each line of the `BeLMSEndPointeUrl` method. This method retrieves and constructs the LMS endpoint URL and HTTP method based on the given `paramKey`.
 
 ```java
-@SuppressWarnings({ "rawtypes", "unchecked" })
-public Map<String, Object> 1msDataProcess (Map<String, Object> request, Map<String, Object> payLoad, String paramKey)
-throws Sales2ServiceRuntimeException, IOException, Exception {
+private Map<String, String> getLMSEndPointeUrl(String paramKey) {
 ```
-- `@SuppressWarnings({ "rawtypes", "unchecked" })`: Suppresses compiler warnings for unchecked operations and raw types.
-- `public Map<String, Object> 1msDataProcess(...)`: Declares a public method returning a `Map<String, Object>`.
-- `Map<String, Object> request`: Input request map.
-- `Map<String, Object> payLoad`: Input payload map.
-- `String paramKey`: A parameter key for some configuration.
-- `throws Sales2ServiceRuntimeException, IOException, Exception`: Declares that the method can throw these exceptions.
+- `private`: This method is accessible only within its class.
+- `Map<String, String> BeLMSEndPointeUrl(String paramKey)`: The method returns a `Map<String, String>` and takes a `String` parameter called `paramKey`.
 
 ```java
-try {
-    LogJson(request, payLoad);
+    Map<String, String> hMap = new HashMap<String, String>();
 ```
-- `try {`: Begins the try block for exception handling.
-- `LogJson(request, payLoad);`: Logs the request and payload.
+- `Map<String, String> hMap = new HashMap<String, String>();`: Initializes an empty map to store the HTTP method and service URL.
 
 ```java
-    Map<String, Object> response = new HashMap<String, Object>();
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+    String url = null;
 ```
-- `Map<String, Object> response = new HashMap<String, Object>();`: Initializes an empty response map.
-- `HttpHeaders headers = new HttpHeaders();`: Creates new HTTP headers.
-- `headers.setContentType(MediaType.APPLICATION_JSON);`: Sets the content type to JSON.
-- `headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));`: Sets the accept header to JSON.
+- `String url = null;`: Declares a `String` variable to hold the URL, initialized to `null`.
 
 ```java
-    if (request.containsKey("headerData"))
-        headers.add("s2sHeader", getHeaderString(request.get("headerData")));
+    Param param = new Param("URL17");
+    param.getKeys()[0] = paramKey;
 ```
-- `if (request.containsKey("headerData"))`: Checks if the request map contains "headerData".
-- `headers.add("s2sHeader", getHeaderString(request.get("headerData")));`: Adds a custom header to the HTTP headers.
+- `Param param = new Param("URL17");`: Creates a new `Param` object with the key `"URL17"`.
+- `param.getKeys()[0] = paramKey;`: Sets the first key in the `Param` object to `paramKey`.
 
 ```java
-    request.remove("headerData");
+    Param results = paramRepository.getParam(param);
 ```
-- `request.remove("headerData");`: Removes "headerData" from the request map.
+- `Param results = paramRepository.getParam(param);`: Fetches the `Param` object from the repository based on the given `param`.
 
 ```java
-    HttpEntity<Map> requestEntity = null;
-    ResponseEntity<Map> responseEntity = null;
-    Map<String, String> paramData = getLMSEndPointeUrl(paramKey);
+    if (results != null) {
 ```
-- `HttpEntity<Map> requestEntity = null;`: Declares a `HttpEntity` to hold the request.
-- `ResponseEntity<Map> responseEntity = null;`: Declares a `ResponseEntity` to hold the response.
-- `Map<String, String> paramData = getLMSEndPointeUrl(paramKey);`: Gets endpoint URL and HTTP method configuration.
+- `if (results != null) {`: Checks if the `results` object is not `null`.
 
 ```java
-    if (paramData.size() > 0) {
-        String serviceUrl = paramData.get("serviceUrl");
-        String httpMethod = paramData.get("httpMethod");
-        serviceUrl = strSubstitutor(serviceUrl, request);
-        Logger.info("Service URL: {}", serviceUrl);
+        hMap.put("httpMethod", results.getData()[0]);
+        url = results.getData()[1];
 ```
-- `if (paramData.size() > 0) {`: Checks if `paramData` is not empty.
-- `String serviceUrl = paramData.get("serviceUrl");`: Gets the service URL from `paramData`.
-- `String httpMethod = paramData.get("httpMethod");`: Gets the HTTP method from `paramData`.
-- `serviceUrl = strSubstitutor(serviceUrl, request);`: Replaces placeholders in `serviceUrl` with values from `request`.
-- `Logger.info("Service URL: {}", serviceUrl);`: Logs the service URL.
+- `hMap.put("httpMethod", results.getData()[0]);`: Puts the HTTP method (from `results.getData()[0]`) into the map.
+- `url = results.getData()[1];`: Sets the `url` variable to the base URL (from `results.getData()[1]`).
 
 ```java
-        requestEntity = new HttpEntity<Map>(payLoad, headers);
-        if ("GET".equalsIgnoreCase(httpMethod))
-            responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.GET, requestEntity, Map.class);
-        else
-            responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.POST, requestEntity, Map.class);
+        if (StringUtils.isNotBlank(results.getData()[6])) 
+            url = url.concat(results.getData()[6]);
+        if (StringUtils.isNotBlank(results.getData()[2])) 
+            url = url.concat(results.getData()[2]);
+        if (StringUtils.isNotBlank(results.getData()[3])) 
+            url = url.concat(results.getData()[3]);
+        if (StringUtils.isNotBlank(results.getData()[4])) 
+            url = url.concat(results.getData()[4]);
+        if (StringUtils.isNotBlank(results.getData()[5])) 
+            url = url.concat(results.getData()[5]);
+        if (StringUtils.isNotBlank(results.getData()[7])) 
+            url = url.concat(results.getData()[7]);
+        if (StringUtils.isNotBlank(results.getData()[8])) 
+            url = url.concat(results.getData()[8]);
+        if (StringUtils.isNotBlank(results.getData()[9])) 
+            url = url.concat(results.getData()[9]);
+        if (StringUtils.isNotBlank(results.getData()[10])) 
+            url = url.concat(results.getData()[10]);
 ```
-- `requestEntity = new HttpEntity<Map>(payLoad, headers);`: Creates an `HttpEntity` with the payload and headers.
-- `if ("GET".equalsIgnoreCase(httpMethod))`: Checks if the HTTP method is GET.
-- `responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.GET, requestEntity, Map.class);`: Sends a GET request.
-- `else`: If the method is not GET, it assumes POST.
-- `responseEntity = template.exchange(new URI(serviceUrl), HttpMethod.POST, requestEntity, Map.class);`: Sends a POST request.
+- For each `if` statement, checks if the corresponding data element (from `results.getData()`) is not blank.
+- If the data element is not blank, concatenates it to the `url` string.
 
 ```java
-        int responseStatus = responseEntity.getStatusCodeValue();
-        Logger.info("Response Status: {}", responseStatus);
+        hMap.put("serviceUrl", url);
 ```
-- `int responseStatus = responseEntity.getStatusCodeValue();`: Gets the response status code.
-- `Logger.info("Response Status: {}", responseStatus);`: Logs the response status code.
+- `hMap.put("serviceUrl", url);`: Puts the constructed URL into the map with the key `"serviceUrl"`.
 
 ```java
-        if (responseStatus == 200) {
-            response = responseEntity.getBody();
-            Logger.info("Response: {}", response);
-        } else {
-            Logger.error("Invalid Response Status: {}", responseStatus);
-            throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service, not a valid response %s", responseStatus));
-        }
-    } else {
-        throw new Sales2ServiceRuntimeException(String.format("Error received while retrieving the service URL"));
     }
-    return response;
-```
-- `if (responseStatus == 200) {`: Checks if the response status is 200 (OK).
-- `response = responseEntity.getBody();`: Gets the response body.
-- `Logger.info("Response: {}", response);`: Logs the response.
-- `} else {`: If the status is not 200.
-- `Logger.error("Invalid Response Status: {}", responseStatus);`: Logs an error for invalid response status.
-- `throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service, not a valid response %s", responseStatus));`: Throws a runtime exception for invalid response status.
-- `} else {`: If `paramData` is empty.
-- `throw new Sales2ServiceRuntimeException(String.format("Error received while retrieving the service URL"));`: Throws a runtime exception for missing service URL.
-- `return response;`: Returns the response map.
-
-```java
-} catch (Sales2ServiceRuntimeException e) {
-    Logger.error("Error for 1msDataProcess method: {}", e.getMessage(), e);
-    throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service"));
-} catch(IOException e) {
-    Logger.error(e.getMessage());
-    throw new Sales2ServiceRuntimeException(e.getMessage());
+    return hMap;
 }
 ```
-- `} catch (Sales2ServiceRuntimeException e) {`: Catches custom runtime exceptions.
-- `Logger.error("Error for 1msDataProcess method: {}", e.getMessage(), e);`: Logs the exception message.
-- `throw new Sales2ServiceRuntimeException(String.format("Error received in LMS rest service"));`: Re-throws the custom runtime exception.
-- `} catch(IOException e) {`: Catches IO exceptions.
-- `Logger.error(e.getMessage());`: Logs the IO exception message.
-- `throw new Sales2ServiceRuntimeException(e.getMessage());`: Throws a custom runtime exception with the IO exception message.
-
-```java
-}
-```
+- `}`: Closes the `if` block.
+- `return hMap;`: Returns the map containing the HTTP method and service URL.
 - `}`: Closes the method.
 
-This method essentially logs inputs, configures headers, prepares and sends a REST request, processes the response, and handles exceptions appropriately.
+This method constructs a service URL by concatenating various parts retrieved from the `results` object and returns a map containing the HTTP method and the complete service URL.
