@@ -1,96 +1,70 @@
-Sure, I'll provide a detailed line-by-line explanation of the corrected version of your code snippet.
-
-### Corrected Code:
+Sure, let's go through the provided code line by line:
 
 ```java
 @Profiled
-@RequestMapping(
-    value = GET_BIU_FILE_TYPE_PICKLIST,
-    method = {RequestMethod.POST, RequestMethod.GET},
-    produces = MediaType.APPLICATION_JSON
-)
-public @ResponseBody Map<String, Map<String, String>> getbiufiledatapicklist(
-    @ModelAttribute("login") LoginBean login,
-    @RequestParam(value = "objectType", required = false) String objectType
-) throws Sales2ServiceRuntimeException, IOException, Exception {
-```
-1. **`@Profiled`**: Custom annotation, likely for profiling the method execution.
-2. **`@RequestMapping`**: Maps HTTP requests to handler methods of MVC and REST controllers.
-   - **`value = GET_BIU_FILE_TYPE_PICKLIST`**: The URL path to which this method is mapped.
-   - **`method = {RequestMethod.POST, RequestMethod.GET}`**: The method supports both POST and GET requests.
-   - **`produces = MediaType.APPLICATION_JSON`**: The method produces a JSON response.
-3. **`@ResponseBody`**: Indicates that the return value of the method will be the response body, directly written to the HTTP response as JSON.
-4. **`getbiufiledatapicklist`**: Method name.
-5. **`@ModelAttribute("login") LoginBean login`**: Binds a model attribute named "login" to the method parameter `login` of type `LoginBean`.
-6. **`@RequestParam(value = "objectType", required = false) String objectType`**: Binds the request parameter `objectType` to the method parameter `objectType`. It is not required, so it can be null.
-7. **`throws Sales2ServiceRuntimeException, IOException, Exception`**: The method can throw these exceptions.
+// 915
+// This is a custom annotation. "Profiled" likely indicates that this method is being monitored or profiled for performance metrics.
 
-```java
-    Map<String, Map<String, String>> pickListMap = new HashMap<>();
-```
-8. **`Map<String, Map<String, String>> pickListMap = new HashMap<>()`**: Initializes an empty map to hold the picklist data, with keys and values both being maps.
+@RequestMapping(value = GET_LEADFILE_DETAILS, method = { RequestMethod.POST, RequestMethod.GET }, produces = MediaType.APPLICATION_JSON)
+// 916
+// The @RequestMapping annotation maps HTTP requests to handler methods. 
+// Here, it maps both POST and GET requests to the URL defined by GET_LEADFILE_DETAILS.
+// The produces attribute specifies that the method returns JSON data.
 
-```java
-    Code code;
-```
-9. **`Code code`**: Declares a variable `code` of type `Code`.
+public @ResponseBody Map<String, Object> getLeadFilelogsDetails (@ModelAttribute("login") LoginBean login,
+// 939
+// The method getLeadFilelogsDetails handles HTTP requests and returns a response as a JSON object.
+// The @ResponseBody annotation ensures the returned Map is serialized into JSON.
+// The @ModelAttribute annotation binds the "login" model attribute to the LoginBean parameter.
 
-```java
-    if (objectType == null) {
-        code = new Code(ApplicationCode.BIU_PICKLIST_CODE.getCodeId());
-        code.setxCtryCd(login.getUserBean().getCountryCode());
-        Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG);
-        pickListMap.put("fileType", jobDivisions);
-    } else {
-        code = new Code(ApplicationCode.BIU_LEAD_PICKLIST_CODE.getCodeId());
-        code.setxParam1(objectType);
-        String ObjectType = code.getxParam1();
-```
-10. **`if (objectType == null)`**: Checks if `objectType` is null.
-    - **`code = new Code(ApplicationCode.BIU_PICKLIST_CODE.getCodeId())`**: Initializes `code` with a specific code ID from `ApplicationCode`.
-    - **`code.setxCtryCd(login.getUserBean().getCountryCode())`**: Sets the country code in `code` from the `login` object.
-    - **`Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG)`**: Retrieves the picklist using `codeRepository`.
-    - **`pickListMap.put("fileType", jobDivisions)`**: Puts the picklist in `pickListMap` under the key `"fileType"`.
-11. **`else`**: If `objectType` is not null:
-    - **`code = new Code(ApplicationCode.BIU_LEAD_PICKLIST_CODE.getCodeId())`**: Initializes `code` with a different code ID.
-    - **`code.setxParam1(objectType)`**: Sets `objectType` as a parameter in `code`.
-    - **`String ObjectType = code.getxParam1()`**: Retrieves `objectType` back from `code`.
+@RequestParam(value = "objectType", required = false) String objectType, 
+@RequestParam(value = "pageNo", required = false, defaultValue = "1") int pageNo, 
+@RequestParam(value = "fileName", required = false, defaultValue = "") String fileNameFilter, 
+@RequestParam(value = "createdDate", required = false, defaultValue = "") String createdDateFilter, 
+@RequestParam(value = "status", required = false, defaultValue = "") String statusFilter, 
+@RequestParam(value = "userId", required = false, defaultValue = "") String userIdFilter)
+// 920-927
+// These @RequestParam annotations bind request parameters to method parameters.
+// Each parameter is optional (required = false) and has a default value if not provided.
 
-```java
-        if ("Campaign".equalsIgnoreCase(ObjectType)) {
-            code.setxCtryCd(login.getUserBean().getCountryCode());
-            Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG);
-            pickListMap.put("fileTypeDetail", jobDivisions);
-        } else if ("Lead".equalsIgnoreCase(ObjectType)) {
-            code.setxCtryCd(login.getUserBean().getCountryCode());
-            Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG);
-            pickListMap.put("fileTypeDetail", jobDivisions);
-        } else if ("Event".equalsIgnoreCase(ObjectType)) {
-            code.setxCtryCd(login.getUserBean().getCountryCode());
-            Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG);
-            pickListMap.put("fileTypeDetail", jobDivisions);
-        }
-    }
-```
-12. **`if ("Campaign".equalsIgnoreCase(ObjectType))`**: Checks if `ObjectType` is "Campaign".
-    - **`code.setxCtryCd(login.getUserBean().getCountryCode())`**: Sets the country code in `code`.
-    - **`Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG)`**: Retrieves the picklist using `codeRepository`.
-    - **`pickListMap.put("fileTypeDetail", jobDivisions)`**: Puts the picklist in `pickListMap` under the key `"fileTypeDetail"`.
-13. **`else if ("Lead".equalsIgnoreCase(ObjectType))`**: Checks if `ObjectType` is "Lead".
-    - **`code.setxCtryCd(login.getUserBean().getCountryCode())`**: Sets the country code in `code`.
-    - **`Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG)`**: Retrieves the picklist using `codeRepository`.
-    - **`pickListMap.put("fileTypeDetail", jobDivisions)`**: Puts the picklist in `pickListMap` under the key `"fileTypeDetail"`.
-14. **`else if ("Event".equalsIgnoreCase(ObjectType))`**: Checks if `ObjectType` is "Event".
-    - **`code.setxCtryCd(login.getUserBean().getCountryCode())`**: Sets the country code in `code`.
-    - **`Map<String, String> jobDivisions = codeRepository.getPickList(code, CodeDescriptionType.LONG)`**: Retrieves the picklist using `codeRepository`.
-    - **`pickListMap.put("fileTypeDetail", jobDivisions)`**: Puts the picklist in `pickListMap` under the key `"fileTypeDetail"`.
+throws Sales2ServiceRuntimeException, IOException, Exception {
+// 928
+// The method declares it can throw several exceptions, including Sales2ServiceRuntimeException, IOException, and a generic Exception.
 
-```java
-    return pickListMap;
+Map<String, Object> request = new HashMap<String, Object>();
+// 929
+// Creates a new HashMap to store request data.
+
+request.put("headerData", getHeaderData(login.getUserBean()));
+// 930
+// Puts header data into the request map, using the getHeaderData method with the userBean from the login object.
+
+request.put("objectType", objectType); 
+request.put("pageNo", pageNo);
+request.put("fileName", fileNameFilter); 
+request.put("status", statusFilter);
+request.put("userId", userIdFilter);
+request.put("createdDate", createdDateFilter);
+// 931-936
+// Adds the parameters received from the request to the request map.
+
+Logger.info("get audit log File details {}" + request);
+// 937
+// Logs the request details for auditing or debugging purposes.
+
+Map<String, Object> response = new HashMap<String, Object>();
+// 938
+// Creates a new HashMap to store the response data.
+
+response = s25OpportunityService.lmsDataProcess(request, null, "GETDBFILEDETAILS");
+// 939
+// Calls the lmsDataProcess method of s25OpportunityService with the request map and other parameters.
+// This method likely processes the request and fetches the necessary data.
+
+return response;
+// 940
+// Returns the response map, which will be serialized to JSON and sent back to the client.
 }
 ```
-15. **`return pickListMap`**: Returns the populated `pickListMap`.
 
-### Summary:
-
-This code defines a Spring MVC controller method that handles both POST and GET requests. It returns a JSON object containing picklist data based on the provided `objectType` parameter. If `objectType` is not provided, it returns a default picklist. If `objectType` is provided, it returns a picklist specific to the type (`Campaign`, `Lead`, or `Event`). The `LoginBean` is used to get the user's country code to tailor the picklist data accordingly.
+This method is essentially a controller endpoint in a Spring Boot application that handles HTTP requests to fetch lead file log details. It processes the request parameters, adds them to a request map, logs the request, calls a service method to process the request, and finally returns the response map.
