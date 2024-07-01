@@ -1,6 +1,19 @@
-
-Hi Satyajit, 
-Update.. 
-We have been analyzing the code for the existing upload functionality available in the CEMS screen. Now, we can start working on the IVR-related table that we need to create for online upload. 
-
-The upload functionality is implemented using Spring Batch,and  we are new to it, so we started learning from the documentation provided by Farzeen.
+CREATE TABLE YourTableName (
+    REL_ID VARCHAR2(25 BYTE),
+    F_FEE_WAIVER VARCHAR2(1 CHAR),
+    F_KYC_STATUS VARCHAR2(1 CHAR),
+    F_TRANSFER_EXCLUSION VARCHAR2(1 CHAR),
+    F_SENSITIVE_CUST VARCHAR2(1 CHAR),
+    RBS_CUST VARCHAR2(1 CHAR),
+    N_FEE_WAIVER_FILE_ID NUMBER,
+    COPS_CUST_INDICATORS VARCHAR2(25 BYTE),
+    N_KYC_STATUS_FILE_ID NUMBER,
+    N_TRANSFER_EXCLUSION_FILE_ID NUMBER,
+    N_SENSITIVE_CUST_FILE_ID NUMBER,
+    N_RBS_CUST_FILE_ID NUMBER,
+    D_CREAT DATE,
+    D_UPD DATE,
+    X_CREAT VARCHAR2(25 CHAR),
+    X_UPD VARCHAR2(25 CHAR),
+    ID VARCHAR2(25 CHAR)
+);
