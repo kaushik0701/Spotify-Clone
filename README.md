@@ -1,39 +1,191 @@
-Sure, here's a simple way to explain Spring Batch to your senior:
+To create a batch job reference project directory and code in the Quarkus framework, follow these steps:
 
----
+### 1. Set Up the Project Directory
 
-**Spring Batch** is a powerful framework that helps in processing large volumes of data by breaking down the work into smaller, manageable tasks. It provides tools and features to handle things like logging, tracking progress, managing transactions, and restarting jobs if they fail. This makes it easier to build reliable and efficient batch processing applications.
+First, ensure that your Quarkus project is set up correctly. You can create a new Quarkus project using the Quarkus CLI or Maven.
 
-### Key Points:
-1. **Job**: The overall task or process.
-2. **Step**: A single phase of the job, like reading data, processing it, or writing the results.
-3. **ItemReader**: Reads the data.
-4. **ItemProcessor**: Processes or transforms the data.
-5. **ItemWriter**: Writes the processed data to the desired output.
-6. **JobRepository**: Stores metadata about jobs, such as their status and execution details.
-7. **JobLauncher**: Launches the job, kicking off the batch process.
+### 2. Create the Project Structure
 
-### Annotations:
-- **@EnableBatchProcessing**: Sets up Spring Batch infrastructure.
-- **@JobScope**: Creates a bean that is tied to a specific job execution.
-- **@StepScope**: Creates a bean that is tied to a specific step execution.
-- **@BeforeStep / @AfterStep**: Methods to run before or after a step.
-- **@BeforeJob / @AfterJob**: Methods to run before or after a job.
-- **@Value**: Injects job parameters into scoped beans.
+Organize your project directory to include necessary packages and files. Here's a reference structure:
 
-### Example:
-A simple batch job might read data from a file, process each record (like transforming data or applying business logic), and then write the results to another file or database.
+```
+quarkus-batch-job/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── sc/
+│   │   │           └── faas/
+│   │   │               ├── dto/
+│   │   │               │   └── MyObject.java
+│   │   │               ├── service/
+│   │   │               │   └── ProcessService.java
+│   │   │               └── batch/
+│   │   │                   └── MyBatchJob.java
+│   │   ├── resources/
+│   │   │   └── application.properties
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── sc/
+│                   └── faas/
+│                       └── MyBatchJobTest.java
+├── pom.xml
+```
+
+### 3. Add Dependencies in `pom.xml`
+
+Add necessary dependencies for Quarkus and batch processing.
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.sc.faas</groupId>
+    <artifactId>quarkus-batch-job</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <properties>
+        <quarkus-plugin.version>2.13.3.Final</quarkus-plugin.version>
+        <quarkus.platform.version>2.13.3.Final</quarkus.platform.version>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-scheduler</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-resteasy</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+### 4. Implement DTO Class `MyObject.java`
 
 ```java
-@Configuration
-@EnableBatchProcessing
-public class BatchConfig {
-    // Define job, steps, reader, processor, and writer here
+package com.sc.faas.dto;
+
+public class MyObject {
+    private Long id;
+    private String message;
+
+    public MyObject(Long id, String message) {
+        this.id = id;
+        this.message = message;
+    }
+
+    // Getters and Setters
 }
 ```
 
-This framework simplifies building batch jobs by handling common concerns and letting you focus on the business logic.
+### 5. Implement Service Class `ProcessService.java`
 
----
+```java
+package com.sc.faas.service;
 
-This should give your senior a clear and concise understanding of what Spring Batch is and how it functions.
+import javax.enterprise.context.ApplicationScoped;
+import com.sc.faas.dto.MyObject;
+
+@ApplicationScoped
+public class ProcessService {
+
+    public MyObject getObjectById(Long id) {
+        return new MyObject(id, "Hello World");
+    }
+}
+```
+
+### 6. Implement Batch Job `MyBatchJob.java`
+
+```java
+package com.sc.faas.batch;
+
+import io.quarkus.scheduler.Scheduled;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import com.sc.faas.service.ProcessService;
+
+@ApplicationScoped
+public class MyBatchJob {
+
+    @Inject
+    ProcessService processService;
+
+    @Scheduled(every="10s")
+    void execute() {
+        MyObject obj = processService.getObjectById(1L);
+        System.out.println("Batch Job Executed: " + obj.getMessage());
+    }
+}
+```
+
+### 7. Configure Application Properties `application.properties`
+
+```properties
+quarkus.scheduler.enabled=true
+```
+
+### 8. Create a Test Class `MyBatchJobTest.java`
+
+```java
+package com.sc.faas;
+
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
+
+@QuarkusTest
+public class MyBatchJobTest {
+
+    @Test
+    public void testBatchJob() {
+        // Test your batch job logic here
+    }
+}
+```
+
+### 9. Run Your Application
+
+Navigate to your project directory and run the application using Maven:
+
+```shell
+mvn quarkus:dev
+```
+
+Your batch job should now run every 10 seconds, printing "Hello World" to the console. This sets up a basic Quarkus project with a batch job reference directory and code.
