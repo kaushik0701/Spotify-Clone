@@ -1,12 +1,16 @@
-To create a batch job reference project directory and code in the Quarkus framework, follow these steps:
+To create a model class for the `COPS_APPLICATION_STATUS_SG` table in the Quarkus framework, follow these steps:
 
-### 1. Set Up the Project Directory
+### 1. Choose a Package Name
 
-First, ensure that your Quarkus project is set up correctly. You can create a new Quarkus project using the Quarkus CLI or Maven.
+For organizing your code, you can use the following package structure:
 
-### 2. Create the Project Structure
+- `com.sc.faas.entity` for the entity classes.
 
-Organize your project directory to include necessary packages and files. Here's a reference structure:
+### 2. Create the Model Class
+
+Create a Java class representing the table in the package `com.sc.faas.entity`.
+
+#### Directory Structure
 
 ```
 quarkus-batch-job/
@@ -16,176 +20,150 @@ quarkus-batch-job/
 │   │   │   └── com/
 │   │   │       └── sc/
 │   │   │           └── faas/
-│   │   │               ├── dto/
-│   │   │               │   └── MyObject.java
-│   │   │               ├── service/
-│   │   │               │   └── ProcessService.java
-│   │   │               └── batch/
-│   │   │                   └── MyBatchJob.java
-│   │   ├── resources/
-│   │   │   └── application.properties
-│   └── test/
-│       └── java/
-│           └── com/
-│               └── sc/
-│                   └── faas/
-│                       └── MyBatchJobTest.java
+│   │   │               └── entity/
+│   │   │                   └── ApplicationStatusSG.java
+│   ├── resources/
+│   │   └── application.properties
 ├── pom.xml
 ```
 
-### 3. Add Dependencies in `pom.xml`
-
-Add necessary dependencies for Quarkus and batch processing.
-
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.sc.faas</groupId>
-    <artifactId>quarkus-batch-job</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <properties>
-        <quarkus-plugin.version>2.13.3.Final</quarkus-plugin.version>
-        <quarkus.platform.version>2.13.3.Final</quarkus.platform.version>
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-bom</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-h2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-scheduler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy</artifactId>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-</project>
-```
-
-### 4. Implement DTO Class `MyObject.java`
+#### Java Class
 
 ```java
-package com.sc.faas.dto;
+package com.sc.faas.entity;
 
-public class MyObject {
-    private Long id;
-    private String message;
+import javax.persistence.*;
+import java.util.Date;
 
-    public MyObject(Long id, String message) {
-        this.id = id;
-        this.message = message;
-    }
+@Entity
+@Table(name = "COPS_APPLICATION_STATUS_SG")
+public class ApplicationStatusSG {
+
+    @Id
+    @Column(name = "N_APPLN_REF_NO")
+    private Long applicationRefNo;
+
+    @Column(name = "D_APPLN_CREAT")
+    private Date applicationCreateDate;
+
+    @Column(name = "X_STATUS_DESC")
+    private String statusDescription;
+
+    @Column(name = "X_APPLN_STATUS")
+    private String applicationStatus;
+
+    @Column(name = "X_PRD_CTGRY")
+    private String productCategory;
+
+    @Column(name = "D_CREAT")
+    private Date createdDate;
+
+    @Column(name = "D_UPD")
+    private Date updatedDate;
+
+    @Column(name = "X_CREAT")
+    private String createdBy;
+
+    @Column(name = "X_UPD")
+    private String updatedBy;
 
     // Getters and Setters
-}
-```
 
-### 5. Implement Service Class `ProcessService.java`
+    public Long getApplicationRefNo() {
+        return applicationRefNo;
+    }
 
-```java
-package com.sc.faas.service;
+    public void setApplicationRefNo(Long applicationRefNo) {
+        this.applicationRefNo = applicationRefNo;
+    }
 
-import javax.enterprise.context.ApplicationScoped;
-import com.sc.faas.dto.MyObject;
+    public Date getApplicationCreateDate() {
+        return applicationCreateDate;
+    }
 
-@ApplicationScoped
-public class ProcessService {
+    public void setApplicationCreateDate(Date applicationCreateDate) {
+        this.applicationCreateDate = applicationCreateDate;
+    }
 
-    public MyObject getObjectById(Long id) {
-        return new MyObject(id, "Hello World");
+    public String getStatusDescription() {
+        return statusDescription;
+    }
+
+    public void setStatusDescription(String statusDescription) {
+        this.statusDescription = statusDescription;
+    }
+
+    public String getApplicationStatus() {
+        return applicationStatus;
+    }
+
+    public void setApplicationStatus(String applicationStatus) {
+        this.applicationStatus = applicationStatus;
+    }
+
+    public String getProductCategory() {
+        return productCategory;
+    }
+
+    public void setProductCategory(String productCategory) {
+        this.productCategory = productCategory;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Date getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(Date updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
 ```
 
-### 6. Implement Batch Job `MyBatchJob.java`
+### 3. Configure Application Properties
 
-```java
-package com.sc.faas.batch;
-
-import io.quarkus.scheduler.Scheduled;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import com.sc.faas.service.ProcessService;
-
-@ApplicationScoped
-public class MyBatchJob {
-
-    @Inject
-    ProcessService processService;
-
-    @Scheduled(every="10s")
-    void execute() {
-        MyObject obj = processService.getObjectById(1L);
-        System.out.println("Batch Job Executed: " + obj.getMessage());
-    }
-}
-```
-
-### 7. Configure Application Properties `application.properties`
+Ensure you have the correct database configurations in your `application.properties` file:
 
 ```properties
-quarkus.scheduler.enabled=true
+quarkus.datasource.db-kind=your-database-kind
+quarkus.datasource.jdbc.url=your-jdbc-url
+quarkus.datasource.username=your-database-username
+quarkus.datasource.password=your-database-password
+quarkus.hibernate-orm.log.sql=true
+quarkus.hibernate-orm.database.generation=update
 ```
 
-### 8. Create a Test Class `MyBatchJobTest.java`
+Replace `your-database-kind`, `your-jdbc-url`, `your-database-username`, and `your-database-password` with your actual database details.
 
-```java
-package com.sc.faas;
+### 4. Verify the Setup
 
-import io.quarkus.test.junit.QuarkusTest;
-import org.junit.jupiter.api.Test;
-
-@QuarkusTest
-public class MyBatchJobTest {
-
-    @Test
-    public void testBatchJob() {
-        // Test your batch job logic here
-    }
-}
-```
-
-### 9. Run Your Application
-
-Navigate to your project directory and run the application using Maven:
+Ensure that the application starts correctly and that the JPA entity is properly mapped to the table. You can run the application with:
 
 ```shell
 mvn quarkus:dev
 ```
 
-Your batch job should now run every 10 seconds, printing "Hello World" to the console. This sets up a basic Quarkus project with a batch job reference directory and code.
+This setup provides you with a model class for the `COPS_APPLICATION_STATUS_SG` table in the Quarkus framework, ensuring proper mapping and configuration.
