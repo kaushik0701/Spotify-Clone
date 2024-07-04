@@ -1,344 +1,183 @@
-To implement CSV file upload functionality in Quarkus and persist the data into a database (Oracle in your case, assuming from the DDL script), you'll need to follow these steps:
+To achieve the file upload and database insertion functionality in Quarkus, you can follow these steps:
 
-### 1. Model Classes
+1. **Set up Quarkus Project**: First, make sure you have a Quarkus project set up with the necessary dependencies for JDBC and file handling.
 
-Create model classes that represent your database tables. Based on your provided DDL script, here are simplified versions for each table:
+2. **Create Entity Class**: Create an entity class that maps to your database table `COPS_CUST_INDICATOR_SG`.
 
-#### COPS_CUST_INDICATORS_SG Entity
+3. **Create Repository**: Create a repository to handle the database operations.
+
+4. **Create Service**: Create a service to handle the file reading and database insertion logic.
+
+5. **Create REST Endpoint**: Create a REST endpoint to trigger the file upload process.
+
+Here's an example of how you can implement this in Quarkus:
+
+### 1. Add Dependencies
+
+Add the following dependencies to your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-resteasy</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-resteasy-jackson</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-hibernate-orm-panache</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-jdbc-postgresql</artifactId>
+</dependency>
+```
+
+### 2. Create Entity Class
 
 ```java
-package com.example.model;
+package com.example;
 
-import javax.persistence.*;
-import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Column;
 
 @Entity
-@Table(name = "COPS_CUST_INDICATORS_SG")
-public class CopsCustIndicatorsSg {
+public class CopsCustIndicatorSG {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
+
     @Column(name = "REL_ID", length = 25)
-    private String relId;
+    public String relId;
 
     @Column(name = "F_FEE_WAIVER", length = 1)
-    private String feeWaiver;
+    public String feeWaiver;
 
-    @Column(name = "F_KYC_STATUS", length = 1)
-    private String kycStatus;
-
-    @Column(name = "F_TRANSFER_EXCLUSION", length = 1)
-    private String transferExclusion;
-
-    @Column(name = "F_SENSITIVE_CUST", length = 1)
-    private String sensitiveCust;
-
-    @Column(name = "RBS_CUST", length = 1)
-    private String rbsCust;
-
-    @Column(name = "N_RBS_CUST_FILE_ID")
-    private Long rbsCustFileId;
-
-    // Add other columns and their mappings
-
-    @Column(name = "D_CREAT")
-    private Date createDate;
-
-    @Column(name = "D_UPD")
-    private Date updateDate;
-
-    @Column(name = "X_CREAT", length = 25)
-    private String createBy;
-
-    @Column(name = "X_UPD", length = 25)
-    private String updateBy;
-
-    // Getters and setters
+    @Column(name = "FILE_ID")
+    public Long fileId;
 }
 ```
 
-#### COPS_PREFERRED_LANG_SG Entity
+### 3. Create Repository
 
 ```java
-package com.example.model;
+package com.example;
 
-import javax.persistence.*;
-import java.util.Date;
-
-@Entity
-@Table(name = "COPS_PREFERRED_LANG_SG")
-@IdClass(CopsPreferredLangSgPK.class)
-public class CopsPreferredLangSg {
-
-    @Id
-    @Column(name = "ID")
-    private Long id;
-
-    @Id
-    @Column(name = "X_REL_ID", length = 25)
-    private String relId;
-
-    @Column(name = "X_LANG_CD", length = 3)
-    private String langCode;
-
-    @Column(name = "D_CREAT")
-    private Date createDate;
-
-    @Column(name = "D_UPD")
-    private Date updateDate;
-
-    @Column(name = "X_CREAT", length = 25)
-    private String createBy;
-
-    @Column(name = "X_UPD", length = 25)
-    private String updateBy;
-
-    // Getters and setters
-}
-```
-
-#### COPS_REPEAT_CALLER_SG Entity
-
-```java
-package com.example.model;
-
-import javax.persistence.*;
-import java.util.Date;
-
-@Entity
-@Table(name = "COPS_REPEAT_CALLER_SG")
-public class CopsRepeatCallerSg {
-
-    @Id
-    @Column(name = "X_REL_ID", length = 25)
-    private String relId;
-
-    @Column(name = "F_REPEAT", length = 3)
-    private String repeat;
-
-    @Column(name = "D_CREAT")
-    private Date createDate;
-
-    @Column(name = "D_UPD")
-    private Date updateDate;
-
-    @Column(name = "X_CREAT", length = 25)
-    private String createBy;
-
-    @Column(name = "X_UPD", length = 25)
-    private String updateBy;
-
-    // Getters and setters
-}
-```
-
-#### COPS_CALLBACK_SG Entity
-
-```java
-package com.example.model;
-
-import javax.persistence.*;
-import java.util.Date;
-
-@Entity
-@Table(name = "COPS_CALLBACK_SG")
-public class CopsCallbackSg {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
-    private Long id;
-
-    @Column(name = "X_REL_ID", length = 25)
-    private String relId;
-
-    @Column(name = "X_CUST_TYPE", length = 3)
-    private String custType;
-
-    @Column(name = "X_CUST_NAME", length = 25)
-    private String custName;
-
-    @Column(name = "X_MOB_NO", length = 25)
-    private String mobNo;
-
-    @Column(name = "X_STATUS", length = 5)
-    private String status;
-
-    @Column(name = "D_CREAT")
-    private Date createDate;
-
-    @Column(name = "D_UPD")
-    private Date updateDate;
-
-    @Column(name = "X_CREAT", length = 25)
-    private String createBy;
-
-    @Column(name = "X_UPD", length = 25)
-    private String updateBy;
-
-    // Getters and setters
-}
-```
-
-#### COPS_TPIN_DTLS_SG Entity
-
-```java
-package com.example.model;
-
-import javax.persistence.*;
-import java.util.Date;
-
-@Entity
-@Table(name = "COPS_TPIN_DTLS_SG")
-public class CopsTpinDtlsSg {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
-    private Long id;
-
-    @Column(name = "X_REL_ID", length = 25)
-    private String relId;
-
-    @Column(name = "X_TPIN", length = 258)
-    private String tpin;
-
-    @Column(name = "X_TPIN_IDX", length = 25)
-    private String tpinIndex;
-
-    @Column(name = "D_CREAT")
-    private Date createDate;
-
-    @Column(name = "D_UPD")
-    private Date updateDate;
-
-    @Column(name = "X_CREAT", length = 25)
-    private String createBy;
-
-    @Column(name = "X_UPD", length = 25)
-    private String updateBy;
-
-    @Column(name = "F_LATEST", length = 1)
-    private String latest;
-
-    // Getters and setters
-}
-```
-
-#### COPS_APPLICATION_STATUS_SG Entity
-
-```java
-package com.example.model;
-
-import javax.persistence.*;
-import java.util.Date;
-
-@Entity
-@Table(name = "COPS_APPLICATION_STATUS_SG")
-public class CopsApplicationStatusSg {
-
-    @Id
-    @Column(name = "N_APPLN_REF_NO")
-    private Long applnRefNo;
-
-    @Column(name = "D_APPLN_CREAT")
-    private Date applnCreateDate;
-
-    @Column(name = "X_STATUS_DESC", length = 50)
-    private String statusDesc;
-
-    @Column(name = "X_APPLN_STATUS", length = 20)
-    private String applnStatus;
-
-    @Column(name = "X_PRD_CTGRY", length = 5)
-    private String prdCategory;
-
-    @Column(name = "D_CREAT")
-    private Date createDate;
-
-    @Column(name = "D_UPD")
-    private Date updateDate;
-
-    @Column(name = "X_CREAT", length = 25)
-    private String createBy;
-
-    @Column(name = "X_UPD", length = 25)
-    private String updateBy;
-
-    // Getters and setters
-}
-```
-
-### 2. Repository Interfaces
-
-Create repository interfaces using PanacheRepository for each entity. Panache simplifies the implementation of the repository with common CRUD operations.
-
-```java
-package com.example.repository;
-
-import com.example.model.CopsCustIndicatorsSg;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class CopsCustIndicatorsSgRepository implements PanacheRepository<CopsCustIndicatorsSg> {
+public class CopsCustIndicatorSGRepository implements PanacheRepository<CopsCustIndicatorSG> {
 }
 ```
 
-Repeat the above for each entity (e.g., `CopsPreferredLangSgRepository`, `CopsRepeatCallerSgRepository`, etc.).
-
-### 3. Service Classes (Optional)
-
-Create service classes to encapsulate business logic if needed. For simple CRUD operations, services might not be necessary, and you can directly use repositories in resources.
-
-### 4. Resource Classes
-
-Create RESTful resource classes to handle HTTP requests. Here's an example for uploading CSV files:
+### 4. Create Service
 
 ```java
-package com.example.resource;
+package com.example;
 
-import com.example.model.*;
-import com.example.repository.*;
-import org.apache.commons.csv.*;
-import javax.inject.*;
-import javax.transaction.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.io.*;
-import java.util.*;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
-@Path("/api/upload")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.MULTIPART_FORM_DATA)
-public class UploadResource {
+@ApplicationScoped
+public class FileUploadService {
 
     @Inject
-    CopsCustIndicatorsSgRepository custIndicatorsSgRepository;
+    CopsCustIndicatorSGRepository repository;
+
+    public void uploadFile(InputStream fileInputStream, Long fileId) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Assume the file has comma-separated values (CSV)
+                String[] parts = line.split(",");
+                if (parts.length == 2) {
+                    CopsCustIndicatorSG record = new CopsCustIndicatorSG();
+                    record.relId = parts[0];
+                    record.feeWaiver = parts[1];
+                    record.fileId = fileId;
+                    repository.persist(record);
+                }
+            }
+        }
+    }
+}
+```
+
+### 5. Create REST Endpoint
+
+```java
+package com.example;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+
+@Path("/file-upload")
+public class FileUploadResource {
 
     @Inject
-    CopsPreferredLangSgRepository preferredLangSgRepository;
-
-    @Inject
-    CopsRepeatCallerSgRepository repeatCallerSgRepository;
-
-    @Inject
-    CopsCallbackSgRepository callbackSgRepository;
-
-    @Inject
-    CopsTpinDtlsSgRepository tpinDtlsSgRepository;
-
-    @Inject
-    CopsApplicationStatusSgRepository applicationStatusSgRepository;
+    FileUploadService fileUploadService;
 
     @POST
-    @Transactional
-    public Response uploadCsvFile(@FormParam("file") InputStream fileInputStream) {
-        try (Reader reader = new InputStreamReader(fileInputStream);
-             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response uploadFile(@MultipartForm FileUploadForm form) {
+        try {
+            fileUploadService.uploadFile(form.fileInputStream, form.fileId);
+            return Response.ok().build();
+        } catch (IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("File upload failed").build();
+        }
+    }
+}
+```
 
-            List<CopsCustIndicatorsSg> custIndicatorsList = new ArrayList<>();
-            List<CopsPreferredLangSg> preferredLangList = new ArrayList<>();
-            List<CopsRepeatCallerSg> repeatCallerList = new ArrayList<>();
-            List<CopsCallbackSg> callbackList = new ArrayList<>();
-            List<CopsTpinDtlsSg> tpinDtlsList = new ArrayList<>();
-            List<CopsApplication
+### 6. Create Multipart Form Class
+
+```java
+package com.example;
+
+import org.jboss.resteasy.annotations.providers.multipart.PartType;
+
+import javax.ws.rs.FormParam;
+import java.io.InputStream;
+
+public class FileUploadForm {
+
+    @FormParam("file")
+    @PartType(MediaType.APPLICATION_OCTET_STREAM)
+    public InputStream fileInputStream;
+
+    @FormParam("fileId")
+    @PartType(MediaType.TEXT_PLAIN)
+    public Long fileId;
+}
+```
+
+### 7. Application Configuration
+
+Make sure you have the necessary configurations in `application.properties` for your database connection:
+
+```properties
+quarkus.datasource.db-kind=postgresql
+quarkus.datasource.username=your-username
+quarkus.datasource.password=your-password
+quarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/LMS_CVD
+quarkus.hibernate-orm.database.generation=update
+```
+
+With this setup, your Quarkus application will be able to read a file, parse its contents, and insert the data into the `COPS_CUST_INDICATOR_SG` table in the `LMS_CVD` database.
