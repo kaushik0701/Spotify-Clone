@@ -1,4 +1,32 @@
-To work with entity classes and communicate with a SQL database in a Quarkus framework, you need to include the following dependencies in your `pom.xml`:
+package com.sc.faas.repository;
+
+import com.sc.faas.model.CopsCustIndicatorsSG;
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import javax.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class CopsCustIndicatorsSGRepository implements PanacheRepository<CopsCustIndicatorsSG> {
+}
+
+@ApplicationScoped
+public class CopsPreferredLangSGRepository implements PanacheRepository<CopsPreferredLangSG> {
+}
+
+@ApplicationScoped
+public class CopsRepeatCallerSGRepository implements PanacheRepository<CopsRepeatCallerSG> {
+}
+
+@ApplicationScoped
+public class CopsCallbackSGRepository implements PanacheRepository<CopsCallbackSG> {
+}
+
+@ApplicationScoped
+public class CopsTpinDtlsSGRepository implements PanacheRepository<CopsTpinDtlsSG> {
+}
+
+@ApplicationScoped
+public class CopsApplicationStatusSGRepository implements PanacheRepository<CopsApplicationStatusSG> {
+}To work with entity classes and communicate with a SQL database in a Quarkus framework, you need to include the following dependencies in your `pom.xml`:
 
 1. **Quarkus Hibernate ORM**:
    This dependency is used for Object-Relational Mapping (ORM) with Hibernate.
