@@ -1,284 +1,309 @@
+To create model classes for the six tables in the Quarkus framework, you can follow the below steps:
 
-To create a project structure for uploading a CSV file and storing its data in six different tables in the Quarkus framework, follow these steps. Below is the project structure along with the implementation for each part.
+1. **Set up the Quarkus project**: If you haven't already, set up a new Quarkus project using the Quarkus CLI or your IDE.
 
-Project Structure
-css
-Copy code
-file-upload-quarkus
-├── src
-│   ├── main
-│   │   ├── java
-│   │   │   └── com
-│   │   │       └── example
-│   │   │           ├── model
-│   │   │           │   ├── CopsCustIndicatorsSG.java
-│   │   │           │   ├── CopsPreferredLangSG.java
-│   │   │           │   ├── CopsRepeatCallerSG.java
-│   │   │           │   ├── CopsCallbackSG.java
-│   │   │           │   ├── CopsTpinDtlsSG.java
-│   │   │           │   └── CopsApplicationStatusSG.java
-│   │   │           ├── repository
-│   │   │           │   ├── CopsCustIndicatorsSGRepository.java
-│   │   │           │   ├── CopsPreferredLangSGRepository.java
-│   │   │           │   ├── CopsRepeatCallerSGRepository.java
-│   │   │           │   ├── CopsCallbackSGRepository.java
-│   │   │           │   ├── CopsTpinDtlsSGRepository.java
-│   │   │           │   └── CopsApplicationStatusSGRepository.java
-│   │   │           ├── resource
-│   │   │           │   └── FileUploadResource.java
-│   │   │           ├── service
-│   │   │           │   └── FileUploadService.java
-│   │   │           └── util
-│   │   │               └── CSVParser.java
-│   │   ├── resources
-│   │   │   └── application.properties
-│   └── test
-│       ├── java
-│       │   └── com
-│       │       └── example
-│       │           └── resource
-│       │               └── FileUploadResourceTest.java
-│       └── resources
-└── pom.xml
-Implementation
-1. Data Models
+2. **Add necessary dependencies**: Ensure you have dependencies for JPA and JDBC in your `pom.xml` file.
 
-Each table corresponds to a model class.
+```xml
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-hibernate-orm-panache</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-jdbc-postgresql</artifactId>
+</dependency>
+```
 
-java
-Copy code
-package com.example.model;
+3. **Create Entity Classes**: Create the entity classes for each table. Below are the entity classes for the six tables.
 
+### COPS_CUST_INDICATORS_SG
+
+```java
 import javax.persistence.*;
 import java.util.Date;
 
-// CopsCustIndicatorsSG.java
 @Entity
+@Table(name = "COPS_CUST_INDICATORS_SG")
 public class CopsCustIndicatorsSG {
+
     @Id
+    @Column(name = "REL_ID")
     private String relId;
-    private String fFeeWaiver;
-    private String fKycStatus;
-    private String fTransferExclusion;
-    private String fSensitiveCust;
+
+    @Column(name = "F_FEE_WAIVER")
+    private String feeWaiver;
+
+    @Column(name = "F_KYC_STATUS")
+    private String kycStatus;
+
+    @Column(name = "F_TRANSFER_EXCLUSION")
+    private String transferExclusion;
+
+    @Column(name = "F_SENSITIVE_CUST")
+    private String sensitiveCust;
+
+    @Column(name = "RBS_CUST")
     private String rbsCust;
-    private Long nRbsCustFileId;
-    private Long nFeeWaiverFileId;
-    private Long nKycStatusFileId;
-    private Long nTransferExclusionFileId;
-    private Long nSensitiveCustFileId;
-    private Date dCreat;
-    private Date dUpd;
-    private String xCreat;
-    private String xUpd;
+
+    @Column(name = "N_RBS_CUST_FILE_ID")
+    private Integer rbsCustFileId;
+
+    @Column(name = "N_FEE_WAIVER_FILE_ID")
+    private Integer feeWaiverFileId;
+
+    @Column(name = "N_KYC_STATUS_FILE_ID")
+    private Integer kycStatusFileId;
+
+    @Column(name = "N_TRANSFER_EXCLUSION_FILE_ID")
+    private Integer transferExclusionFileId;
+
+    @Column(name = "N_SENSITIVE_CUST_FILE_ID")
+    private Integer sensitiveCustFileId;
+
+    @Column(name = "D_CREAT")
+    private Date creatDate;
+
+    @Column(name = "D_UPD")
+    private Date updDate;
+
+    @Column(name = "X_CREAT")
+    private String creatUser;
+
+    @Column(name = "X_UPD")
+    private String updUser;
 
     // Getters and Setters
 }
-Other model classes follow a similar pattern, with fields corresponding to their respective tables. Here's one more example:
+```
 
-java
-Copy code
-package com.example.model;
+### COPS_PREFERRED_LANG_SG
 
+```java
 import javax.persistence.*;
 import java.util.Date;
 
-// CopsPreferredLangSG.java
 @Entity
+@Table(name = "COPS_PREFERRED_LANG_SG")
 public class CopsPreferredLangSG {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private Long id;
-    private String xRelId;
-    private String xLangCd;
-    private Date dCreat;
-    private Date dUpd;
-    private String xCreat;
-    private String xUpd;
-    private String fLatest;
+
+    @Column(name = "X_REL_ID")
+    private String relId;
+
+    @Column(name = "X_LANG_CD")
+    private String langCd;
+
+    @Column(name = "D_CREAT")
+    private Date creatDate;
+
+    @Column(name = "D_UPD")
+    private Date updDate;
+
+    @Column(name = "X_CREAT")
+    private String creatUser;
+
+    @Column(name = "X_UPD")
+    private String updUser;
+
+    @Column(name = "F_LATEST")
+    private String latest;
 
     // Getters and Setters
 }
-2. Repositories
+```
 
-Each model class needs a repository interface.
+### COPS_REPEAT_CALLER_SG
 
-java
-Copy code
-package com.example.repository;
+```java
+import javax.persistence.*;
+import java.util.Date;
 
-import com.example.model.CopsCustIndicatorsSG;
+@Entity
+@Table(name = "COPS_REPEAT_CALLER_SG")
+public class CopsRepeatCallerSG {
+
+    @Id
+    @Column(name = "X_REL_ID")
+    private String relId;
+
+    @Column(name = "F_REPEAT")
+    private String repeat;
+
+    @Column(name = "D_CREAT")
+    private Date creatDate;
+
+    @Column(name = "D_UPD")
+    private Date updDate;
+
+    @Column(name = "X_CREAT")
+    private String creatUser;
+
+    @Column(name = "X_UPD")
+    private String updUser;
+
+    // Getters and Setters
+}
+```
+
+### COPS_CALLBACK_SG
+
+```java
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name = "COPS_CALLBACK_SG")
+public class CopsCallbackSG {
+
+    @Id
+    @Column(name = "ID")
+    private Long id;
+
+    @Column(name = "X_REL_ID")
+    private String relId;
+
+    @Column(name = "X_CUST_TYPE")
+    private String custType;
+
+    @Column(name = "X_CUST_NAME")
+    private String custName;
+
+    @Column(name = "X_MOB_NO")
+    private String mobNo;
+
+    @Column(name = "X_STATUS")
+    private String status;
+
+    @Column(name = "D_CREAT")
+    private Date creatDate;
+
+    @Column(name = "D_UPD")
+    private Date updDate;
+
+    @Column(name = "X_CREAT")
+    private String creatUser;
+
+    @Column(name = "X_UPD")
+    private String updUser;
+
+    // Getters and Setters
+}
+```
+
+### COPS_TPIN_DTLS_SG
+
+```java
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name = "COPS_TPIN_DTLS_SG")
+public class CopsTpinDtlsSG {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
+    private Long id;
+
+    @Column(name = "X_REL_ID")
+    private String relId;
+
+    @Column(name = "X_TPIN")
+    private String tpin;
+
+    @Column(name = "X_TPIN_IDX")
+    private String tpinIdx;
+
+    @Column(name = "D_CREAT")
+    private Date creatDate;
+
+    @Column(name = "D_UPD")
+    private Date updDate;
+
+    @Column(name = "X_CREAT")
+    private String creatUser;
+
+    @Column(name = "X_UPD")
+    private String updUser;
+
+    @Column(name = "F_LATEST")
+    private String latest;
+
+    // Getters and Setters
+}
+```
+
+### COPS_APPLICATION_STATUS_SG
+
+```java
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name = "COPS_APPLICATION_STATUS_SG")
+public class CopsApplicationStatusSG {
+
+    @Id
+    @Column(name = "N_APPLN_REF_NO")
+    private Long applnRefNo;
+
+    @Column(name = "D_APPLN_CREAT")
+    private Date applnCreatDate;
+
+    @Column(name = "X_STATUS_DESC")
+    private String statusDesc;
+
+    @Column(name = "X_APPLN_STATUS")
+    private String applnStatus;
+
+    @Column(name = "X_PRD_CTGRY")
+    private String prdCtgry;
+
+    @Column(name = "D_CREAT")
+    private Date creatDate;
+
+    @Column(name = "D_UPD")
+    private Date updDate;
+
+    @Column(name = "X_CREAT")
+    private String creatUser;
+
+    @Column(name = "X_UPD")
+    private String updUser;
+
+    // Getters and Setters
+}
+```
+
+4. **Create a Repository Interface**: Create a repository interface for each entity to handle database operations using Panache.
+
+### Example for `CopsCustIndicatorsSG`
+
+```java
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class CopsCustIndicatorsSGRepository implements PanacheRepository<CopsCustIndicatorsSG> {
+    // Custom query methods can be defined here
 }
-Repeat for each model class.
+```
 
-3. FileUploadResource.java
+Repeat this step for the other entities as needed.
 
-java
-Copy code
-package com.example.resource;
+5. **Database Configuration**: Make sure your `application.properties` file is correctly configured to connect to your database.
 
-import com.example.service.FileUploadService;
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+```properties
+quarkus.datasource.db-kind=postgresql
+quarkus.datasource.username=<username>
+quarkus.datasource.password=<password>
+quarkus.datasource.jdbc.url=jdbc:postgresql://<host>:<port>/<database>
+quarkus.hibernate-orm.database.generation=update
+```
 
-@Path("/upload")
-public class FileUploadResource {
-
-    @Inject
-    FileUploadService fileUploadService;
-
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response uploadFile(@MultipartForm MultipartBody body) {
-        try {
-            fileUploadService.processFile(body.file);
-            return Response.ok().build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        }
-    }
-
-    public static class MultipartBody {
-        @org.jboss.resteasy.annotations.providers.multipart.PartType(MediaType.APPLICATION_OCTET_STREAM)
-        public java.io.InputStream file;
-    }
-}
-4. FileUploadService.java
-
-java
-Copy code
-package com.example.service;
-
-import com.example.model.*;
-import com.example.repository.*;
-import com.example.util.CSVParser;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import java.io.InputStream;
-import java.util.List;
-
-@ApplicationScoped
-public class FileUploadService {
-
-    @Inject
-    CopsCustIndicatorsSGRepository copsCustIndicatorsSGRepository;
-    
-    @Inject
-    CopsPreferredLangSGRepository copsPreferredLangSGRepository;
-
-    @Inject
-    CopsRepeatCallerSGRepository copsRepeatCallerSGRepository;
-
-    @Inject
-    CopsCallbackSGRepository copsCallbackSGRepository;
-
-    @Inject
-    CopsTpinDtlsSGRepository copsTpinDtlsSGRepository;
-
-    @Inject
-    CopsApplicationStatusSGRepository copsApplicationStatusSGRepository;
-
-    @Inject
-    CSVParser csvParser;
-
-    @Transactional
-    public void processFile(InputStream inputStream) {
-        List<CopsCustIndicatorsSG> indicatorsSGs = csvParser.parseCSV(inputStream, CopsCustIndicatorsSG.class);
-        for (CopsCustIndicatorsSG entity : indicatorsSGs) {
-            copsCustIndicatorsSGRepository.persist(entity);
-        }
-
-        List<CopsPreferredLangSG> preferredLangSGs = csvParser.parseCSV(inputStream, CopsPreferredLangSG.class);
-        for (CopsPreferredLangSG entity : preferredLangSGs) {
-            copsPreferredLangSGRepository.persist(entity);
-        }
-
-        // Repeat similar code for other entities
-    }
-}
-5. CSVParser.java
-
-java
-Copy code
-package com.example.util;
-
-import com.opencsv.bean.CsvToBeanBuilder;
-import javax.enterprise.context.ApplicationScoped;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
-
-@ApplicationScoped
-public class CSVParser {
-
-    public <T> List<T> parseCSV(InputStream inputStream, Class<T> type) {
-        return new CsvToBeanBuilder<T>(new InputStreamReader(inputStream))
-                .withType(type)
-                .build()
-                .parse();
-    }
-}
-6. application.properties
-
-properties
-Copy code
-# Database configuration
-quarkus.datasource.db-kind=h2
-quarkus.datasource.jdbc.url=jdbc:h2:mem:test
-quarkus.datasource.username=sa
-quarkus.datasource.password=sa
-quarkus.hibernate-orm.database.generation=drop-and-create
-7. pom.xml
-
-Ensure you have the necessary dependencies in your pom.xml:
-
-xml
-Copy code
-<dependencies>
-    <!-- Quarkus dependencies -->
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-resteasy</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-resteasy-multipart</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-hibernate-orm-panache</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-jdbc-h2</artifactId>
-    </dependency>
-    <!-- OpenCSV for CSV parsing -->
-    <dependency>
-        <groupId>com.opencsv</groupId>
-        <artifactId>opencsv</artifactId>
-    </dependency>
-    <!-- Test dependencies -->
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-junit5</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>io.rest-assured</groupId>
-        <artifactId>rest-assured</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-With this setup, you can upload a CSV file and store its data in multiple tables in the database using the Quarkus framework. The CSVParser utility uses OpenCSV to parse CSV files into Java objects, which are then persisted using the Panache repository.
+With these steps, you will have created the model classes and repositories for the six tables in the Quarkus framework.
