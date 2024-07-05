@@ -1,3 +1,22 @@
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+import java.io.Reader;
+
+@ApplicationScoped
+public class CSVParserProducer {
+
+    @Produces
+    public CSVParser createCSVParser(Reader reader) throws Exception {
+        CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
+        return new CSVParser(reader, csvFormat);
+    }
+}
+
+
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.util.List;
