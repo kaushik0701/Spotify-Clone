@@ -1,3 +1,105 @@
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class FileProcessor {
+
+    public List<CopsApplicationStatusSG> process(List<CSVRecord> csvRecords) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        return csvRecords.stream().map(record -> {
+            CopsApplicationStatusSG appStatus = new CopsApplicationStatusSG();
+            try {
+                appStatus.applnRefNo = record.get("N_APPLN_REF_NO") != null ? Long.valueOf(record.get("N_APPLN_REF_NO")) : null;
+                appStatus.applnCreateDate = record.get("D_APPLN_CREAT") != null ? LocalDate.parse(record.get("D_APPLN_CREAT"), formatter) : null;
+                appStatus.statusDesc = record.get("X_STATUS_DESC");
+                appStatus.applnStatus = record.get("X_APPLN_STATUS");
+                appStatus.prodCtgry = record.get("X_PROD_CTGRY");
+                appStatus.createDate = record.get("D_CREAT") != null ? LocalDate.parse(record.get("D_CREAT"), formatter) : null;
+                appStatus.updDate = record.get("D_UPD") != null ? LocalDate.parse(record.get("D_UPD"), formatter) : null;
+                appStatus.createUser = record.get("X_CREAT");
+                appStatus.updUser = record.get("X_UPD");
+            } catch (Exception e) {
+                System.err.println("Error processing record: " + record);
+                e.printStackTrace();
+            }
+            return appStatus;
+        }).collect(Collectors.toList());
+    }
+}
+
+
+
+-------------------------------
+package com.example;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+
+public class CustomCSVItemReader implements ItemReader<CopsApplicationStatusSG> {
+
+    private CSVReader csvReader;
+    private List<String[]> allData;
+    private int currentIndex = 0;
+
+    @Value("${file.path}")
+    private String filePath;
+
+    public CustomCSVItemReader() {
+        try {
+            this.csvReader = new CSVReaderBuilder(new FileReader(filePath)).withSkipLines(1).build(); // Skip header line
+            this.allData = csvReader.readAll();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public CopsApplicationStatusSG read() {
+        if (currentIndex < allData.size()) {
+            String[] record = allData.get(currentIndex++);
+            return mapToCopsApplicationStatusSG(record);
+        } else {
+            return null; // No more data
+        }
+    }
+
+    private CopsApplicationStatusSG mapToCopsApplicationStatusSG(String[] record) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        CopsApplicationStatusSG appStatus = new CopsApplicationStatusSG();
+
+        try {
+            appStatus.applnRefNo = record[0] != null ? Long.valueOf(record[0]) : null;
+            appStatus.applnCreateDate = record[1] != null ? LocalDate.parse(record[1], formatter) : null;
+            appStatus.statusDesc = record[2];
+            appStatus.applnStatus = record[3];
+            appStatus.prodCtgry = record[4];
+            appStatus.createDate = record[5] != null ? LocalDate.parse(record[5], formatter) : null;
+            appStatus.updDate = record[6] != null ? LocalDate.parse(record[6], formatter) : null;
+            appStatus.createUser = record[7];
+            appStatus.updUser = record[8];
+        } catch (Exception e) {
+            System.err.println("Error processing record: " + String.join(",", record));
+            e.printStackTrace();
+        }
+
+        return appStatus;
+    }
+}
+
+
+-------------------------
+
+
+
+
 Here's a basic implementation of the FileReader, FileProcessor, and FileWriter classes for uploading a CSV file into the COPS_APPLICATION_STATUS_SG table in the Quarkus framework. This example uses Apache Commons CSV for parsing the CSV file and Hibernate Panache for interacting with the database.
 
 Directory Structure
