@@ -1,183 +1,309 @@
-To achieve the file upload and database insertion functionality in Quarkus, you can follow these steps:
+To implement a batch job in the Quarkus framework that uploads data from a CSV file into the COPS_APPLICATION_STATUS_SG table, follow these steps. We'll break down the implementation into several components: reading the CSV file, processing the data, and writing the data into the database.
 
-1. **Set up Quarkus Project**: First, make sure you have a Quarkus project set up with the necessary dependencies for JDBC and file handling.
+Project Structure
+Here's an updated structure for your project:
 
-2. **Create Entity Class**: Create an entity class that maps to your database table `COPS_CUST_INDICATOR_SG`.
+css
+Copy code
+src
+└── main
+    ├── java
+    │   └── com
+    │       └── sc
+    │           └── faas
+    │               ├── dto
+    │               │   └── ApplicationStatusDto.java
+    │               ├── model
+    │               │   └── ApplicationStatus.java
+    │               ├── repository
+    │               │   └── ApplicationStatusRepository.java
+    │               ├── resource
+    │               │   └── FileUploadResource.java
+    │               ├── service
+    │               │   ├── FileProcessor.java
+    │               │   ├── FileReader.java
+    │               │   ├── FileUploadService.java
+    │               │   └── FileWriter.java
+    │               └── util
+    │                   └── CSVParser.java
+    └── resources
+        ├── data
+        │   └── COPS_APPLICATION_STATUS_SG.csv
+        └── application.properties
+Step-by-Step Implementation
+1. Define the DTO
+Create ApplicationStatusDto.java in the dto package to represent the CSV data.
 
-3. **Create Repository**: Create a repository to handle the database operations.
+java
+Copy code
+package com.sc.faas.dto;
 
-4. **Create Service**: Create a service to handle the file reading and database insertion logic.
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
-5. **Create REST Endpoint**: Create a REST endpoint to trigger the file upload process.
+public class ApplicationStatusDto {
+    private BigDecimal nApplnRefNo;
+    private LocalDate dApplnCreat;
+    private String xStatusDesc;
+    private String xApplnStatus;
+    private String xPrdCtgry;
+    private LocalDate dCreat;
+    private LocalDate dUpd;
+    private String xCreat;
+    private String xUpd;
 
-Here's an example of how you can implement this in Quarkus:
+    // Getters and setters
+}
+2. Define the Entity
+Create ApplicationStatus.java in the model package.
 
-### 1. Add Dependencies
-
-Add the following dependencies to your `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-resteasy</artifactId>
-</dependency>
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-resteasy-jackson</artifactId>
-</dependency>
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-hibernate-orm-panache</artifactId>
-</dependency>
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-jdbc-postgresql</artifactId>
-</dependency>
-```
-
-### 2. Create Entity Class
-
-```java
-package com.example;
+java
+Copy code
+package com.sc.faas.model;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Column;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
-public class CopsCustIndicatorSG {
-
+public class ApplicationStatus {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private BigDecimal nApplnRefNo;
+    private LocalDate dApplnCreat;
+    private String xStatusDesc;
+    private String xApplnStatus;
+    private String xPrdCtgry;
+    private LocalDate dCreat;
+    private LocalDate dUpd;
+    private String xCreat;
+    private String xUpd;
 
-    @Column(name = "REL_ID", length = 25)
-    public String relId;
-
-    @Column(name = "F_FEE_WAIVER", length = 1)
-    public String feeWaiver;
-
-    @Column(name = "FILE_ID")
-    public Long fileId;
+    // Getters and setters
 }
-```
+3. Create the Repository
+Create ApplicationStatusRepository.java in the repository package.
 
-### 3. Create Repository
+java
+Copy code
+package com.sc.faas.repository;
 
-```java
-package com.example;
-
+import com.sc.faas.model.ApplicationStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class CopsCustIndicatorSGRepository implements PanacheRepository<CopsCustIndicatorSG> {
+public class ApplicationStatusRepository implements PanacheRepository<ApplicationStatus> {
 }
-```
+4. Implement CSV Parsing Utility
+Create CSVParser.java in the util package to parse the CSV file.
 
-### 4. Create Service
+java
+Copy code
+package com.sc.faas.util;
 
-```java
-package com.example;
+import com.sc.faas.dto.ApplicationStatusDto;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-@ApplicationScoped
-public class FileUploadService {
+public class CSVParserUtil {
+
+    public static List<ApplicationStatusDto> parseCSV(String filePath) throws IOException {
+        List<ApplicationStatusDto> applicationStatusList = new ArrayList<>();
+
+        try (
+            Reader reader = Files.newBufferedReader(Paths.get(filePath));
+            CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader())
+        ) {
+            for (CSVRecord csvRecord : csvParser) {
+                ApplicationStatusDto dto = new ApplicationStatusDto();
+                dto.setNApplnRefNo(new BigDecimal(csvRecord.get("N_APPLN_REF_NO")));
+                dto.setDApplnCreat(LocalDate.parse(csvRecord.get("D_APPLN_CREAT")));
+                dto.setXStatusDesc(csvRecord.get("X_STATUS_DESC"));
+                dto.setXApplnStatus(csvRecord.get("X_APPLN_STATUS"));
+                dto.setXPrdCtgry(csvRecord.get("X_PRD_CTGRY"));
+                dto.setDCreat(LocalDate.parse(csvRecord.get("D_CREAT")));
+                dto.setDUpd(LocalDate.parse(csvRecord.get("D_UPD")));
+                dto.setXCreat(csvRecord.get("X_CREAT"));
+                dto.setXUpd(csvRecord.get("X_UPD"));
+
+                applicationStatusList.add(dto);
+            }
+        }
+
+        return applicationStatusList;
+    }
+}
+5. Implement the Batch Components
+FileReader.java
+java
+Copy code
+package com.sc.faas.service;
+
+import com.sc.faas.dto.ApplicationStatusDto;
+import com.sc.faas.util.CSVParserUtil;
+import jakarta.batch.api.chunk.AbstractItemReader;
+import jakarta.batch.runtime.context.JobContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+import java.io.Serializable;
+import java.util.List;
+
+@Named
+public class FileReader extends AbstractItemReader {
 
     @Inject
-    CopsCustIndicatorSGRepository repository;
+    private JobContext jobContext;
 
-    public void uploadFile(InputStream fileInputStream, Long fileId) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Assume the file has comma-separated values (CSV)
-                String[] parts = line.split(",");
-                if (parts.length == 2) {
-                    CopsCustIndicatorSG record = new CopsCustIndicatorSG();
-                    record.relId = parts[0];
-                    record.feeWaiver = parts[1];
-                    record.fileId = fileId;
-                    repository.persist(record);
-                }
-            }
+    private List<ApplicationStatusDto> applicationStatusList;
+    private int currentIndex = 0;
+
+    @Override
+    public void open(Serializable checkpoint) throws Exception {
+        String filePath = jobContext.getProperties().getProperty("inputFile");
+        applicationStatusList = CSVParserUtil.parseCSV(filePath);
+    }
+
+    @Override
+    public ApplicationStatusDto readItem() throws Exception {
+        if (currentIndex < applicationStatusList.size()) {
+            return applicationStatusList.get(currentIndex++);
+        } else {
+            return null;
         }
     }
 }
-```
+FileWriter.java
+java
+Copy code
+package com.sc.faas.service;
 
-### 5. Create REST Endpoint
+import com.sc.faas.dto.ApplicationStatusDto;
+import com.sc.faas.model.ApplicationStatus;
+import com.sc.faas.repository.ApplicationStatusRepository;
+import jakarta.batch.api.chunk.AbstractItemWriter;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
-```java
-package com.example;
+import java.util.List;
 
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+@Named
+public class FileWriter extends AbstractItemWriter {
+
+    @Inject
+    private ApplicationStatusRepository repository;
+
+    @Override
+    public void writeItems(List<Object> items) throws Exception {
+        for (Object item : items) {
+            ApplicationStatusDto dto = (ApplicationStatusDto) item;
+            ApplicationStatus applicationStatus = new ApplicationStatus();
+            applicationStatus.setNApplnRefNo(dto.getNApplnRefNo());
+            applicationStatus.setDApplnCreat(dto.getDApplnCreat());
+            applicationStatus.setXStatusDesc(dto.getXStatusDesc());
+            applicationStatus.setXApplnStatus(dto.getXApplnStatus());
+            applicationStatus.setXPrdCtgry(dto.getXPrdCtgry());
+            applicationStatus.setDCreat(dto.getDCreat());
+            applicationStatus.setDUpd(dto.getDUpd());
+            applicationStatus.setXCreat(dto.getXCreat());
+            applicationStatus.setXUpd(dto.getXUpd());
+
+            repository.persist(applicationStatus);
+        }
+    }
+}
+FileProcessor.java
+java
+Copy code
+package com.sc.faas.service;
+
+import com.sc.faas.dto.ApplicationStatusDto;
+import jakarta.batch.api.chunk.AbstractItemProcessor;
+import jakarta.inject.Named;
+
+@Named
+public class FileProcessor extends AbstractItemProcessor {
+
+    @Override
+    public ApplicationStatusDto processItem(Object item) throws Exception {
+        // Perform any processing logic if needed
+        return (ApplicationStatusDto) item;
+    }
+}
+6. Define the Batch Job XML
+Create a batch job XML configuration in resources/META-INF/batch-jobs/csv-upload-job.xml.
+
+xml
+Copy code
+<?xml version="1.0" encoding="UTF-8"?>
+<job id="csv-upload-job" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
+    <step id="step1">
+        <chunk item-count="10">
+            <reader ref="FileReader"/>
+            <processor ref="FileProcessor"/>
+            <writer ref="FileWriter"/>
+        </chunk>
+    </step>
+</job>
+7. Implement the Resource to Trigger the Batch Job
+Create FileUploadResource.java in the resource package.
+
+java
+Copy code
+package com.sc.faas.resource;
+
+import jakarta.batch.runtime.BatchRuntime;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
+
+import java.util.Properties;
 
 @Path("/file-upload")
 public class FileUploadResource {
 
-    @Inject
-    FileUploadService fileUploadService;
-
     @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response uploadFile(@MultipartForm FileUploadForm form) {
-        try {
-            fileUploadService.uploadFile(form.fileInputStream, form.fileId);
-            return Response.ok().build();
-        } catch (IOException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("File upload failed").build();
-        }
+    public Response uploadFile() {
+        Properties jobParams = new Properties();
+        jobParams.setProperty("inputFile", "src/main/resources/data/COPS_APPLICATION_STATUS_SG.csv");
+
+        long executionId = BatchRuntime.getJobOperator().start("csv-upload-job", jobParams);
+        return Response.ok("Batch job started with execution ID: " + executionId).build();
     }
 }
-```
+8. Configure the Application Properties
+Add any required configuration in application.properties.
 
-### 6. Create Multipart Form Class
+properties
+Copy code
+quarkus.datasource.db-kind=h2
+quarkus.datasource.jdbc.url=jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+quarkus.datasource.username=sa
+quarkus.datasource.password=sa
+quarkus.hibernate-orm.database.generation=drop-and-create
+quarkus.hibernate-orm.sql-load-script=no-file
+Summary
+This setup will allow you to upload a
 
-```java
-package com.example;
 
-import org.jboss.resteasy.annotations.providers.multipart.PartType;
+3/3
 
-import javax.ws.rs.FormParam;
-import java.io.InputStream;
 
-public class FileUploadForm {
 
-    @FormParam("file")
-    @PartType(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream fileInputStream;
 
-    @FormParam("fileId")
-    @PartType(MediaType.TEXT_PLAIN)
-    public Long fileId;
-}
-```
 
-### 7. Application Configuration
 
-Make sure you have the necessary configurations in `application.properties` for your database connection:
 
-```properties
-quarkus.datasource.db-kind=postgresql
-quarkus.datasource.username=your-username
-quarkus.datasource.password=your-password
-quarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/LMS_CVD
-quarkus.hibernate-orm.database.generation=update
-```
 
-With this setup, your Quarkus application will be able to read a file, parse its contents, and insert the data into the `COPS_CUST_INDICATOR_SG` table in the `LMS_CVD` database.
+Continue generating
+
