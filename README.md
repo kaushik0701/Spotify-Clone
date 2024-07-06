@@ -1,423 +1,59 @@
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import java.io.Reader;
-
-@ApplicationScoped
-public class CSVParserProducer {
-
-    @Produces
-    public CSVParser createCSVParser(Reader reader) throws Exception {
-        CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
-        return new CSVParser(reader, csvFormat);
-    }
-}
-
-
-import java.time.format.DateTimeFormatter;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class FileProcessor {
-
-    public List<CopsApplicationStatusSG> process(List<CSVRecord> csvRecords) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        return csvRecords.stream().map(record -> {
-            CopsApplicationStatusSG appStatus = new CopsApplicationStatusSG();
-            try {
-                appStatus.applnRefNo = record.get("N_APPLN_REF_NO") != null ? Long.valueOf(record.get("N_APPLN_REF_NO")) : null;
-                appStatus.applnCreateDate = record.get("D_APPLN_CREAT") != null ? LocalDate.parse(record.get("D_APPLN_CREAT"), formatter) : null;
-                appStatus.statusDesc = record.get("X_STATUS_DESC");
-                appStatus.applnStatus = record.get("X_APPLN_STATUS");
-                appStatus.prodCtgry = record.get("X_PROD_CTGRY");
-                appStatus.createDate = record.get("D_CREAT") != null ? LocalDate.parse(record.get("D_CREAT"), formatter) : null;
-                appStatus.updDate = record.get("D_UPD") != null ? LocalDate.parse(record.get("D_UPD"), formatter) : null;
-                appStatus.createUser = record.get("X_CREAT");
-                appStatus.updUser = record.get("X_UPD");
-            } catch (Exception e) {
-                System.err.println("Error processing record: " + record);
-                e.printStackTrace();
-            }
-            return appStatus;
-        }).collect(Collectors.toList());
-    }
-}
-
-
-
--------------------------------
-package com.example;
-
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.List;
-
-public class CustomCSVItemReader implements ItemReader<CopsApplicationStatusSG> {
-
-    private CSVReader csvReader;
-    private List<String[]> allData;
-    private int currentIndex = 0;
-
-    @Value("${file.path}")
-    private String filePath;
-
-    public CustomCSVItemReader() {
-        try {
-            this.csvReader = new CSVReaderBuilder(new FileReader(filePath)).withSkipLines(1).build(); // Skip header line
-            this.allData = csvReader.readAll();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public CopsApplicationStatusSG read() {
-        if (currentIndex < allData.size()) {
-            String[] record = allData.get(currentIndex++);
-            return mapToCopsApplicationStatusSG(record);
-        } else {
-            return null; // No more data
-        }
-    }
-
-    private CopsApplicationStatusSG mapToCopsApplicationStatusSG(String[] record) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        CopsApplicationStatusSG appStatus = new CopsApplicationStatusSG();
-
-        try {
-            appStatus.applnRefNo = record[0] != null ? Long.valueOf(record[0]) : null;
-            appStatus.applnCreateDate = record[1] != null ? LocalDate.parse(record[1], formatter) : null;
-            appStatus.statusDesc = record[2];
-            appStatus.applnStatus = record[3];
-            appStatus.prodCtgry = record[4];
-            appStatus.createDate = record[5] != null ? LocalDate.parse(record[5], formatter) : null;
-            appStatus.updDate = record[6] != null ? LocalDate.parse(record[6], formatter) : null;
-            appStatus.createUser = record[7];
-            appStatus.updUser = record[8];
-        } catch (Exception e) {
-            System.err.println("Error processing record: " + String.join(",", record));
-            e.printStackTrace();
-        }
-
-        return appStatus;
-    }
-}
-
-
--------------------------
-
-
-
-
-Here's a basic implementation of the FileReader, FileProcessor, and FileWriter classes for uploading a CSV file into the COPS_APPLICATION_STATUS_SG table in the Quarkus framework. This example uses Apache Commons CSV for parsing the CSV file and Hibernate Panache for interacting with the database.
-
-Directory Structure
-lua
-Copy code
-main
-|-- java
-|   |-- com
-|   |   |-- sc
-|   |   |   |-- faas
-|   |   |   |   |-- dto
-|   |   |   |   |-- model
-|   |   |   |   |   |-- ApplicationStatusSG.java
-|   |   |   |   |-- repository
-|   |   |   |   |   |-- SGRepository.java
-|   |   |   |   |-- resource
-|   |   |   |   |-- service
-|   |   |   |   |   |-- FileProcessor.java
-|   |   |   |   |   |-- FileReader.java
-|   |   |   |   |   |-- FileUploadService.java
-|   |   |   |   |   |-- FileWriter.java
-|   |   |   |   |-- util
-|   |   |   |   |   |-- CSVParser.java
-|-- resources
-|   |-- application.properties
-|   |-- COPS_APPLICATION_STATUS_SG.csv
-|-- target
-1. Model Class
-ApplicationStatusSG.java
-
-java
-Copy code
-package com.sc.faas.model;
-
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import java.time.LocalDate;
-import javax.persistence.Column;
-
-@Entity
-@Table(name = "COPS_APPLICATION_STATUS_SG")
-public class ApplicationStatusSG extends PanacheEntityBase {
-
-    @Id
-    @Column(name = "N_APPLN_REF_NO")
-    public Long applicationRefNo;
-
-    @Column(name = "D_APPLN_CREAT")
-    public LocalDate applicationCreateDate;
-
-    @Column(name = "X_STATUS_DESC")
-    public String statusDescription;
-
-    @Column(name = "X_APPLN_STATUS")
-    public String applicationStatus;
-
-    @Column(name = "X_PRD_CTGRY")
-    public String productCategory;
-
-    @Column(name = "D_CREAT")
-    public LocalDate createDate;
-
-    @Column(name = "D_UPD")
-    public LocalDate updateDate;
-
-    @Column(name = "X_CREAT")
-    public String createdBy;
-
-    @Column(name = "X_UPD")
-    public String updatedBy;
-}
-2. Repository
-SGRepository.java
-
-java
-Copy code
-package com.sc.faas.repository;
-
-import com.sc.faas.model.ApplicationStatusSG;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
-import jakarta.enterprise.context.ApplicationScoped;
-
-@ApplicationScoped
-public class SGRepository implements PanacheRepository<ApplicationStatusSG> {
-}
-3. FileReader
-FileReader.java
-
-java
-Copy code
-package com.sc.faas.service;
-
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import java.io.FileReader;
-import java.io.Reader;
-import java.util.List;
-
-@Dependent
-@Named
-public class FileReader {
-
-    @Inject
-    CSVParser csvParser;
-
-    public List<CSVRecord> readCSV(String filePath) throws Exception {
-        try (Reader reader = new FileReader(filePath)) {
-            CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
-            csvParser = new CSVParser(reader, csvFormat);
-            return csvParser.getRecords();
-        }
-    }
-}
-4. FileProcessor
-FileProcessor.java
-
-java
-Copy code
-package com.sc.faas.service;
-
-import com.sc.faas.model.ApplicationStatusSG;
-import org.apache.commons.csv.CSVRecord;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Named;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Dependent
-@Named
-public class FileProcessor {
-
-    public List<ApplicationStatusSG> process(List<CSVRecord> csvRecords) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return csvRecords.stream().map(record -> {
-            ApplicationStatusSG appStatus = new ApplicationStatusSG();
-            appStatus.applicationRefNo = Long.valueOf(record.get("N_APPLN_REF_NO"));
-            appStatus.applicationCreateDate = LocalDate.parse(record.get("D_APPLN_CREAT"), formatter);
-            appStatus.statusDescription = record.get("X_STATUS_DESC");
-            appStatus.applicationStatus = record.get("X_APPLN_STATUS");
-            appStatus.productCategory = record.get("X_PRD_CTGRY");
-            appStatus.createDate = LocalDate.parse(record.get("D_CREAT"), formatter);
-            appStatus.updateDate = LocalDate.parse(record.get("D_UPD"), formatter);
-            appStatus.createdBy = record.get("X_CREAT");
-            appStatus.updatedBy = record.get("X_UPD");
-            return appStatus;
-        }).collect(Collectors.toList());
-    }
-}
-5. FileWriter
-FileWriter.java
-
-java
-Copy code
-package com.sc.faas.service;
-
-import com.sc.faas.model.ApplicationStatusSG;
-import com.sc.faas.repository.SGRepository;
-import jakarta.enterprise.context.Dependent;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import java.util.List;
-
-@Dependent
-@Named
-public class FileWriter {
-
-    @Inject
-    SGRepository sgRepository;
-
-    public void write(List<ApplicationStatusSG> records) {
-        sgRepository.persist(records);
-    }
-}
-6. FileUploadService
-FileUploadService.java
-
-java
-Copy code
-package com.sc.faas.service;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import org.apache.commons.csv.CSVRecord;
-import java.util.List;
-
-@ApplicationScoped
-public class FileUploadService {
-
-    @Inject
-    FileReader fileReader;
-
-    @Inject
-    FileProcessor fileProcessor;
-
-    @Inject
-    FileWriter fileWriter;
-
-    public void uploadFile(String filePath) throws Exception {
-        List<CSVRecord> csvRecords = fileReader.readCSV(filePath);
-        List<ApplicationStatusSG> applicationStatusList = fileProcessor.process(csvRecords);
-        fileWriter.write(applicationStatusList);
-    }
-}
-7. FileUploadResource
-FileUploadResource.java
-
-java
-Copy code
-package com.sc.faas.resource;
-
-import com.sc.faas.service.FileUploadService;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Response;
-import java.io.File;
-
-@Path("/upload")
-public class FileUploadResource {
-
-    @Inject
-    FileUploadService fileUploadService;
-
-    @POST
-    @Path("/csv")
-    public Response uploadCSV() {
-        try {
-            // Provide the correct path to your CSV file
-            String filePath = "path/to/your/COPS_APPLICATION_STATUS_SG.csv";
-            fileUploadService.uploadFile(filePath);
-            return Response.ok("File uploaded successfully").build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("File upload failed: " + e.getMessage()).build();
-        }
-    }
-}
-8. CSVParser Utility
-CSVParser.java
-
-java
-Copy code
+// src/main/java/com/sc/faas/util/CSVParser.java
 package com.sc.faas.util;
 
-import jakarta.enterprise.context.Dependent;
+import com.sc.faas.model.CopsApplicationStatusSG;
+import com.sc.faas.model.CopsCustIndicatorsSG;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
-@Dependent
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+
 public class CSVParserUtil {
 
-    public CSVParser getCSVParser() {
-        return new CSVParser();
+    public static List<CopsApplicationStatusSG> parseCopsApplicationStatusSG(Reader reader) throws Exception {
+        List<CopsApplicationStatusSG> records = new ArrayList<>();
+        CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader());
+        for (CSVRecord csvRecord : csvParser) {
+            CopsApplicationStatusSG record = new CopsApplicationStatusSG();
+            record.setApplicationRefNo(Long.parseLong(csvRecord.get("N_APPLN_REF_NO")));
+            record.setApplicationCreateDate(java.sql.Date.valueOf(csvRecord.get("D_APPLN_CREAT")));
+            record.setStatusDesc(csvRecord.get("X_STATUS_DESC"));
+            record.setApplicationStatus(csvRecord.get("X_APPLN_STATUS"));
+            record.setProductCategory(csvRecord.get("X_PRD_CTGRY"));
+            record.setCreateDate(java.sql.Date.valueOf(csvRecord.get("D_CREAT")));
+            record.setUpdateDate(java.sql.Date.valueOf(csvRecord.get("D_UPD")));
+            record.setCreatedBy(csvRecord.get("X_CREAT"));
+            record.setUpdatedBy(csvRecord.get("X_UPD"));
+            records.add(record);
+        }
+        return records;
+    }
+
+    public static List<CopsCustIndicatorsSG> parseCopsCustIndicatorsSG(Reader reader) throws Exception {
+        List<CopsCustIndicatorsSG> records = new ArrayList<>();
+        CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader());
+        for (CSVRecord csvRecord : csvParser) {
+            CopsCustIndicatorsSG record = new CopsCustIndicatorsSG();
+            record.setRelId(csvRecord.get("REL_ID"));
+            record.setFeeWaiver(csvRecord.get("F_FEE_WAIVER"));
+            record.setKycStatus(csvRecord.get("F_KYC_STATUS"));
+            record.setTransferExclusion(csvRecord.get("F_TRANSFER_EXCLUSION"));
+            record.setSensitiveCust(csvRecord.get("F_SENSITIVE_CUST"));
+            record.setRbsCust(csvRecord.get("RBS_CUST"));
+            record.setFeeWaiverFileId(Long.parseLong(csvRecord.get("N_FEE_WAIVER_FILE_ID")));
+            record.setKycStatusFileId(Long.parseLong(csvRecord.get("N_KYC_STATUS_FILE_ID")));
+            record.setTransferExclusionFileId(Long.parseLong(csvRecord.get("N_TRANSFER_EXCLUSION_FILE_ID")));
+            record.setSensitiveCustFileId(Long.parseLong(csvRecord.get("N_SENSITIVE_CUST_FILE_ID")));
+            record.setRbsCustFileId(Long.parseLong(csvRecord.get("N_RBS_CUST_FILE_ID")));
+            record.setCreateDate(java.sql.Date.valueOf(csvRecord.get("D_CREAT")));
+            record.setUpdateDate(java.sql.Date.valueOf(csvRecord.get("D_UPD")));
+            record.setCreatedBy(csvRecord.get("X_CREAT"));
+            record.setUpdatedBy(csvRecord.get("X_UPD"));
+            records.add(record);
+        }
+        return records;
     }
 }
-Dependencies in pom.xml
-Make sure you have the following dependencies in your pom.xml:
-
-xml
-Copy code
-<dependencies>
-    <!-- Quarkus dependencies -->
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-resteasy</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-resteasy-jackson</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-hibernate-orm-panache</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-jdbc-h2</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-batch</artifactId>
-    </dependency>
-    
-    <!-- Apache Commons CSV dependency -->
-    <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-csv</artifactId>
-        <version>1.9.0</version>
-    </dependency>
-</dependencies>
-This setup provides a basic structure for reading a CSV file, processing it, and writing the data to the COPS_APPLICATION_STATUS_SG table using Quarkus. Make sure to replace "path/to/your/COPS_APPLICATION_STATUS_SG.csv" with the actual path to your CSV file in the FileUploadResource class.
-
-
-
-
